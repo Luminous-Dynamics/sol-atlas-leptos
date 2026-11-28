@@ -42,6 +42,15 @@ struct Score {
     net_evsi: f64,
 }
 
+#[derive(Clone, Debug)]
+struct PolicyNode {
+    value: f64,
+    stop_action: Option<String>,
+    survey_index: Option<usize>,
+    negative: Option<Box<PolicyNode>>,
+    positive: Option<Box<PolicyNode>>,
+}
+
 fn fail(message: impl AsRef<str>) -> ! {
     panic!("INVALID: {}", message.as_ref());
 }
@@ -359,6 +368,124 @@ fn evaluate_portfolio(
     }
 }
 
+fn event_likelihood(
+    problem: &Problem,
+    hypothesis: &Hypothesis,
+    observed: &[Option<bool>],
+    candidate: Option<(usize, bool)>,
+) -> f64 {
+    problem.joint_outcomes[&hypothesis.id]
+        .iter()
+        .filter(|(pattern, _)| {
+            observed.iter().enumerate().all(|(index, required)| {
+                required.is_none_or(|value| {
+                    pattern.as_bytes()[index] == if value { b'1' } else { b'0' }
+                })
+            }) && candidate.is_none_or(|(index, value)| {
+                pattern.as_bytes()[index] == if value { b'1' } else { b'0' }
+            })
+        })
+        .map(|(_, probability)| *probability)
+        .sum()
+}
+
+fn solve_sequential_policy(
+    problem: &Problem,
+    observed: &mut [Option<bool>],
+    joint_mass: &[f64],
+    remaining_effort: usize,
+) -> PolicyNode {
+    let history_probability = joint_mass.iter().sum::<f64>();
+    if history_probability <= EPSILON {
+        fail("sequential policy reached a zero-probability history");
+    }
+    let posterior: Vec<f64> = joint_mass
+        .iter()
+        .map(|mass| mass / history_probability)
+        .collect();
+    let (stop_action, stop_utility) = best_action_value(problem, &posterior);
+    let mut best = PolicyNode {
+        value: stop_utility,
+        stop_action: Some(stop_action),
+        survey_index: None,
+        negative: None,
+        positive: None,
+    };
+
+    for survey_index in 0..problem.surveys.len() {
+        let survey = &problem.surveys[survey_index];
+        if observed[survey_index].is_some() || survey.effort_units > remaining_effort {
+            continue;
+        }
+
+        let mut branch_values = [0.0_f64; 2];
+        let mut children: [Option<Box<PolicyNode>>; 2] = [None, None];
+        for (outcome_index, positive) in [false, true].into_iter().enumerate() {
+            let child_mass: Vec<f64> = problem
+                .hypotheses
+                .iter()
+                .enumerate()
+                .map(|(hypothesis_index, hypothesis)| {
+                    let history_given_h = event_likelihood(problem, hypothesis, observed, None);
+                    if history_given_h <= EPSILON {
+                        0.0
+                    } else {
+                        let child_given_h =
+                            event_likelihood(problem, hypothesis, observed, Some((survey_index, positive)));
+                        joint_mass[hypothesis_index] * (child_given_h / history_given_h)
+                    }
+                })
+                .collect();
+            let outcome_probability = child_mass.iter().sum::<f64>() / history_probability;
+            if outcome_probability <= EPSILON {
+                continue;
+            }
+
+            observed[survey_index] = Some(positive);
+            let child = solve_sequential_policy(
+                problem,
+                observed,
+                &child_mass,
+                remaining_effort - survey.effort_units,
+            );
+            observed[survey_index] = None;
+            branch_values[outcome_index] = outcome_probability * child.value;
+            children[outcome_index] = Some(Box::new(child));
+        }
+
+        let candidate_value = branch_values.iter().sum::<f64>() - survey.utility_cost;
+        if candidate_value > best.value + EPSILON {
+            best = PolicyNode {
+                value: candidate_value,
+                stop_action: None,
+                survey_index: Some(survey_index),
+                negative: children[0].take(),
+                positive: children[1].take(),
+            };
+        }
+    }
+    best
+}
+
+fn policy_to_json(node: &PolicyNode, problem: &Problem) -> Value {
+    match node.survey_index {
+        Some(index) => json!({
+            "nodeType": "survey",
+            "surveyId": problem.surveys[index].id,
+            "expectedNetUtilityFromNode": node.value,
+            "outcomes": {
+                "negative": node.negative.as_ref().map(|child| policy_to_json(child, problem)),
+                "positive": node.positive.as_ref().map(|child| policy_to_json(child, problem))
+            }
+        }),
+        None => json!({
+            "nodeType": "decision",
+            "action": node.stop_action,
+            "expectedUtility": node.value
+        }),
+    }
+}
+
 fn calculate(case: &Value) -> Value {
     let problem = parse_problem(case);
     let prior: Vec<f64> = problem.hypotheses.iter().map(|h| h.prior).collect();
@@ -394,6 +521,18 @@ fn calculate(case: &Value) -> Value {
         .map(|index| problem.surveys[*index].id.clone())
         .collect();
 
+    if problem.surveys.len() > 8 {
+        fail("sequential exact policy evaluator is limited to 8 survey candidates");
+    }
+    let mut observed = vec![None; problem.surveys.len()];
+    let root_mass: Vec<f64> = problem.hypotheses.iter().map(|h| h.prior).collect();
+    let sequential_policy = solve_sequential_policy(
+        &problem,
+        &mut observed,
+        &root_mass,
+        problem.max_effort_units,
+    );
+
     json!({
         "benchmarkId": "sol-atlas-correlated-spatial-observations",
         "version": "0.1.0",
@@ -403,6 +542,10 @@ fn calculate(case: &Value) -> Value {
             "expectedUtility": baseline_utility
         },
         "selectedSurveyIds": selected_ids,
+        "sequentialPolicy": {
+            "expectedNetUtility": sequential_policy.value,
+            "tree": policy_to_json(&sequential_policy, &problem)
+        },
         "selectedPortfolio": {
             "effortUnits": best.effort_units,
             "utilityCost": best.utility_cost,
@@ -489,6 +632,30 @@ mod tests {
             result["selectedPortfolio"]["netEvsi"].as_f64().unwrap(),
             19.9,
         );
+    }
+
+    #[test]
+    fn adaptive_policy_stops_after_a_correlated_repeat_has_no_marginal_value() {
+        let problem = parse_problem(&fixture());
+        let mut observed = vec![None; problem.surveys.len()];
+        let root_mass: Vec<f64> = problem.hypotheses.iter().map(|h| h.prior).collect();
+        let policy = solve_sequential_policy(
+            &problem,
+            &mut observed,
+            &root_mass,
+            problem.max_effort_units,
+        );
+        assert_eq!(
+            policy.survey_index.map(|index| problem.surveys[index].id.as_str()),
+            Some("aerial_texture_scan")
+        );
+        close(policy.value, 79.9);
+        let negative = policy.negative.as_ref().unwrap();
+        let positive = policy.positive.as_ref().unwrap();
+        assert_eq!(negative.survey_index, None);
+        assert_eq!(positive.survey_index, None);
+        assert!(negative.stop_action.is_some());
+        assert!(positive.stop_action.is_some());
     }
 
     #[test]
