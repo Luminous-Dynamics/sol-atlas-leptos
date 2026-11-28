@@ -83,3 +83,24 @@ Each hypothesis needs a null hypothesis, independent data, ablations and a falsi
 - Performance benchmarking of scan-to-HBIM workflows (2012-2025), Automation in Construction (2026): https://doi.org/10.1016/j.autcon.2026.106848
 - Tootoonchi and Hess (2026), heritage-building digital-twin review: https://doi.org/10.5194/isprs-annals-XI-4-2026-435-2026
 - Doria et al. (2026), use-centred HBIM and heritage digital-twin evaluation: https://www.mdpi.com/2571-9408/9/8/309
+
+
+## 2026-11-28 update: adapter-readiness reality check
+
+A new third-party validation route is available: Geonovum's OGC Checker CLI validates JSON-FG documents against JSON-FG 1.0.0. The repository documents the CLI invocation and its JSON-FG requirement coverage. It tests Core schema validity, metadata and several geometry/time requirements, but it does not test Core valid-geometry, cannot test axis-order, and does not dereference referenced feature schemas for the types-schemas requirement. These gaps mean its result must be described as independent partial conformance evidence, not complete Annex A coverage.
+
+Sources:
+- Geonovum OGC Checker: https://github.com/Geonovum/ogc-checker
+- OGC JSON-FG 1.0.0 normative Annex A: https://docs.ogc.org/is/21-045r1/21-045r1.html
+
+The current GDAL stable JSON-FG driver documentation says it implements a draft version of the standard. Its documented feature coverage includes feature type, CRS, feature-level time, and limited Polyhedron/Prism support. Therefore GDAL JSONFG is a candidate conversion route, not a JSON-FG 1.0.0 conformance claim.
+
+Source: https://gdal.org/en/stable/drivers/vector/jsonfg.html
+
+pygeoapi 0.24.0 documents GeoJSON as the default feature output; custom formatters are configured separately. A separate pygeoapi-plugins project documents a JSON-FG formatter. This should be treated as a candidate formatter requiring pinned integration tests, not built-in JSON-FG 1.0 conformance.
+
+Sources:
+- https://docs.pygeoapi.io/en/stable/publishing/ogcapi-features.html
+- https://pypi.org/project/pygeoapi-plugins/
+
+Sol-Atlas response: add Geonovum validation to CI at a pinned version, retain a negative control, publish adapter readiness as not-executed until evidence exists, and require full semantic round-trip plus field-disposition receipts before qualifying any adapter.
