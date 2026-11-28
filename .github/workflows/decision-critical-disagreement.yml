@@ -1,0 +1,76 @@
+name: Decision-Critical Spatial Disagreement Reference
+
+on:
+  pull_request:
+    paths:
+      - "benchmarks/decision-critical-disagreement/**"
+      - "research/spatial-investigation/DECISION_CRITICAL_DISAGREEMENT_BENCH_V0_1.md"
+      - ".github/workflows/decision-critical-disagreement.yml"
+  push:
+    branches: [main]
+    paths:
+      - "benchmarks/decision-critical-disagreement/**"
+      - "research/spatial-investigation/DECISION_CRITICAL_DISAGREEMENT_BENCH_V0_1.md"
+      - ".github/workflows/decision-critical-disagreement.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  decision-critical-disagreement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate frozen fixture against Draft 2020-12 schema
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.26.0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          base = Path("benchmarks/decision-critical-disagreement/v0.1")
+          schema = json.loads((base / "schemas/disagreement-cases.schema.json").read_text())
+          fixture = json.loads((base / "fixtures/disagreement-cases-v0.1.json").read_text())
+          errors = sorted(
+              Draft202012Validator(schema).iter_errors(fixture),
+              key=lambda error: list(error.absolute_path),
+          )
+          if errors:
+              for error in errors:
+                  print(f"INVALID: {list(error.absolute_path)}: {error.message}")
+              raise SystemExit(1)
+          print("VALID: decision-critical disagreement schema and fixture")
+          PY
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path benchmarks/decision-critical-disagreement/v0.1/reference/Cargo.toml -- --check
+
+      - name: Run exact reference tests
+        run: cargo test --manifest-path benchmarks/decision-critical-disagreement/v0.1/reference/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --manifest-path benchmarks/decision-critical-disagreement/v0.1/reference/Cargo.toml --all-targets -- -D warnings
+
+      - name: Execute frozen oracle
+        run: |
+          cargo run --manifest-path benchmarks/decision-critical-disagreement/v0.1/reference/Cargo.toml -- \
+            benchmarks/decision-critical-disagreement/v0.1/fixtures/disagreement-cases-v0.1.json \
+            > /tmp/decision-critical-disagreement.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("/tmp/decision-critical-disagreement.json").read_text())
+          assert report["fixtureStatus"] == "synthetic"
+          assert report["claimCeiling"] == "SYNTHETIC_FINITE_ACTION_LOSS_ORACLE_ONLY"
+          assert report["caseCount"] == 4
+          assert len(report["results"]) == 4
+          print("VALID: executable decision-critical disagreement oracle")
+          PY
