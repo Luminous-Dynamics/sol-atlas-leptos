@@ -26,6 +26,7 @@ struct Problem {
     survey_ids: Vec<String>,
     max_effort_units: usize,
     tv_radii: Vec<f64>,
+    cvar_alphas: Vec<f64>,
     scenarios: Vec<Scenario>,
 }
 
@@ -148,6 +149,29 @@ fn parse_problem(case: &Value) -> Problem {
         fail("at least one total-variation ambiguity radius is required");
     }
     tv_radii.sort_by(f64::total_cmp);
+
+    let mut cvar_alphas = Vec::new();
+    let mut cvar_alpha_values = BTreeSet::new();
+    for (index, value) in as_array(
+        required(decision, "cvarAlphas", "decisionProblem"),
+        "decisionProblem.cvarAlphas",
+    )
+    .iter()
+    .enumerate()
+    {
+        let alpha = as_number(value, &format!("cvarAlphas[{index}]"));
+        if alpha <= 0.0 || alpha > 1.0 {
+            fail("lower-tail CVaR alphas must be within (0, 1]");
+        }
+        if !cvar_alpha_values.insert(alpha.to_bits()) {
+            fail("lower-tail CVaR alphas must be unique");
+        }
+        cvar_alphas.push(alpha);
+    }
+    if cvar_alphas.is_empty() {
+        fail("at least one lower-tail CVaR alpha is required");
+    }
+    cvar_alphas.sort_by(f64::total_cmp);
 
     let scenario_values = as_array(
         required(decision, "scenarios", "decisionProblem"),
@@ -312,6 +336,7 @@ fn parse_problem(case: &Value) -> Problem {
         survey_ids,
         max_effort_units,
         tv_radii,
+        cvar_alphas,
         scenarios,
     }
 }
@@ -517,6 +542,64 @@ fn choose_tv_portfolio<'a>(
     (best_record, best_value, best_weights)
 }
 
+fn lower_tail_cvar_weights(
+    problem: &Problem,
+    record: &PortfolioRecord,
+    alpha: f64,
+) -> (f64, Vec<f64>) {
+    let mut order: Vec<usize> = (0..problem.scenarios.len()).collect();
+    order.sort_by(|a, b| {
+        record.scenario_scores[*a]
+            .net_evsi
+            .total_cmp(&record.scenario_scores[*b].net_evsi)
+            .then_with(|| problem.scenarios[*a].id.cmp(&problem.scenarios[*b].id))
+    });
+
+    let mut remaining = alpha;
+    let mut tail_weights = vec![0.0; problem.scenarios.len()];
+    let mut weighted_tail_value = 0.0;
+    for index in order {
+        if remaining <= EPSILON {
+            break;
+        }
+        let mass = problem.scenarios[index].weight.min(remaining);
+        tail_weights[index] = mass / alpha;
+        weighted_tail_value += mass * record.scenario_scores[index].net_evsi;
+        remaining -= mass;
+    }
+    if remaining > EPSILON {
+        fail("scenario probability mass is insufficient for requested CVaR tail");
+    }
+    (weighted_tail_value / alpha, tail_weights)
+}
+
+fn choose_cvar_portfolio<'a>(
+    problem: &Problem,
+    records: &'a [PortfolioRecord],
+    alpha: f64,
+) -> (&'a PortfolioRecord, f64, Vec<f64>) {
+    let mut best_record = records
+        .first()
+        .unwrap_or_else(|| fail("no portfolio records for CVaR optimization"));
+    let (mut best_value, mut best_weights) =
+        lower_tail_cvar_weights(problem, best_record, alpha);
+    for candidate in records.iter().skip(1) {
+        let (candidate_value, candidate_weights) =
+            lower_tail_cvar_weights(problem, candidate, alpha);
+        if candidate_value > best_value + EPSILON
+            || ((candidate_value - best_value).abs() <= EPSILON
+                && (candidate.selected_survey_ids.len() < best_record.selected_survey_ids.len()
+                    || (candidate.selected_survey_ids.len() == best_record.selected_survey_ids.len()
+                        && candidate.selected_survey_ids < best_record.selected_survey_ids)))
+        {
+            best_record = candidate;
+            best_value = candidate_value;
+            best_weights = candidate_weights;
+        }
+    }
+    (best_record, best_value, best_weights)
+}
+
 fn calculate(case: &Value) -> Value {
     let problem = parse_problem(case);
     let survey_count = problem.survey_ids.len();
@@ -625,6 +708,27 @@ fn calculate(case: &Value) -> Value {
         })
         .collect();
 
+    let cvar_policies: Vec<Value> = problem
+        .cvar_alphas
+        .iter()
+        .map(|alpha| {
+            let (policy, cvar_value, tail_weights) =
+                choose_cvar_portfolio(&problem, &records, *alpha);
+            let tail_weights_by_scenario: BTreeMap<String, f64> = problem
+                .scenarios
+                .iter()
+                .zip(tail_weights.iter())
+                .map(|(scenario, weight)| (scenario.id.clone(), *weight))
+                .collect();
+            json!({
+                "alpha": alpha,
+                "selectedPolicy": portfolio_json(policy, &problem),
+                "lowerTailCvarNetEvsi": cvar_value,
+                "normalizedTailScenarioWeights": tail_weights_by_scenario
+            })
+        })
+        .collect();
+
     json!({
         "benchmarkId": "sol-atlas-robust-spatial-decision-evsi",
         "version": "0.1.0",
@@ -635,6 +739,7 @@ fn calculate(case: &Value) -> Value {
         "maximinNetEvsiPolicy": portfolio_json(maximin, &problem),
         "minimaxRegretPolicy": portfolio_json(minimax_regret, &problem),
         "totalVariationDROPolicies": tv_dro_policies,
+        "lowerTailCvarPolicies": cvar_policies,
         "scenarioBestChoices": scenario_best_choices,
         "portfolioComparisons": records.iter().map(|record| portfolio_json(record, &problem)).collect::<Vec<Value>>()
     })
@@ -770,6 +875,60 @@ mod tests {
             .map(|policy| policy["worstCaseExpectedNetEvsi"].as_f64().unwrap())
             .collect();
         assert!(robust_values.windows(2).all(|window| window[1] <= window[0] + EPSILON));
+    }
+
+    #[test]
+    fn lower_tail_cvar_exposes_risk_preference_crossover() {
+        let result = calculate(&fixture());
+        let policies = result["lowerTailCvarPolicies"].as_array().unwrap();
+        let ten_percent = policies
+            .iter()
+            .find(|policy| policy["alpha"] == json!(0.1))
+            .unwrap();
+        assert_eq!(
+            ten_percent["selectedPolicy"]["selectedSurveyIds"],
+            json!(["archive_crosscheck"])
+        );
+        close(
+            ten_percent["lowerTailCvarNetEvsi"].as_f64().unwrap(),
+            3.0,
+        );
+
+        let twenty_percent = policies
+            .iter()
+            .find(|policy| policy["alpha"] == json!(0.2))
+            .unwrap();
+        assert_eq!(
+            twenty_percent["selectedPolicy"]["selectedSurveyIds"],
+            json!(["multispectral_material_scan"])
+        );
+        close(
+            twenty_percent["lowerTailCvarNetEvsi"].as_f64().unwrap(),
+            8.5,
+        );
+
+        let full_distribution = policies
+            .iter()
+            .find(|policy| policy["alpha"] == json!(1.0))
+            .unwrap();
+        assert_eq!(
+            full_distribution["selectedPolicy"]["selectedSurveyIds"],
+            result["nominalExpectedNetEvsiPolicy"]["selectedSurveyIds"]
+        );
+        close(
+            full_distribution["lowerTailCvarNetEvsi"].as_f64().unwrap(),
+            result["nominalExpectedNetEvsiPolicy"]["weightedMeanNetEvsi"]
+                .as_f64()
+                .unwrap(),
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "within (0, 1]")]
+    fn rejects_cvar_alpha_outside_open_closed_unit_interval() {
+        let mut case = fixture();
+        case["decisionProblem"]["cvarAlphas"][0] = json!(0.0);
+        let _ = calculate(&case);
     }
 
     #[test]
