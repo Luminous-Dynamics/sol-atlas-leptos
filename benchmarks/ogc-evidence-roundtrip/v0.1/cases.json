@@ -227,6 +227,12 @@
       "mutation": "Mark the field-disposition ledger completed while entries remain not_assessed or source/target artifact digests are absent.",
       "expected": "reject",
       "reason": "An unexecuted or incompletely accounted-for adapter route must never be reported as qualified."
+    },
+    {
+      "id": "NEG-20",
+      "mutation": "Embed syntheticPayload when contentRetrieval or publicDisclosure is pending or unknown (rather than explicitly allowed).",
+      "expected": "reject",
+      "reason": "The profile is fail-closed: both content retrieval and public disclosure must be explicitly allowed before content is embedded."
     }
   ],
   "qualificationRules": {
@@ -244,7 +250,7 @@
     "fieldDispositionLedger": "schemas/field-disposition-ledger.schema.json"
   },
   "validationBoundary": {
-    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations. Field-disposition ledger states and conditional completion requirements.",
+    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations. Field-disposition ledger states and conditional completion requirements. Evidence payload embedding only when both contentRetrieval and publicDisclosure are explicitly allowed; pending/unknown rights do not qualify.",
     "semanticValidatorRequired": [
       "cross-association ID disjointness",
       "association-to-record resolution and relation agreement",
