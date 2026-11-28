@@ -1,0 +1,95 @@
+{
+  "benchmarkId": "sol-atlas-active-spatial-investigation",
+  "version": "0.1.0",
+  "fixtureStatus": "synthetic",
+  "decisionProblem": {
+    "hypotheses": [
+      {
+        "id": "surviving_original_fabric",
+        "prior": 0.45
+      },
+      {
+        "id": "later_repair",
+        "prior": 0.35
+      },
+      {
+        "id": "historic_intervention_rework",
+        "prior": 0.2
+      }
+    ],
+    "actions": [
+      {
+        "id": "preserve_in_situ",
+        "utilities": {
+          "surviving_original_fabric": 100,
+          "later_repair": 20,
+          "historic_intervention_rework": 100
+        }
+      },
+      {
+        "id": "intervene_and_repair",
+        "utilities": {
+          "surviving_original_fabric": 10,
+          "later_repair": 80,
+          "historic_intervention_rework": 10
+        }
+      }
+    ],
+    "maxEffortUnits": 3,
+    "surveys": [
+      {
+        "id": "stratigraphic_microsection",
+        "effortUnits": 2,
+        "utilityCost": 2.5,
+        "positiveLikelihoodByHypothesis": {
+          "surviving_original_fabric": 0.85,
+          "later_repair": 0.2,
+          "historic_intervention_rework": 0.8
+        }
+      },
+      {
+        "id": "archive_crosscheck",
+        "effortUnits": 1,
+        "utilityCost": 1,
+        "positiveLikelihoodByHypothesis": {
+          "surviving_original_fabric": 0.65,
+          "later_repair": 0.45,
+          "historic_intervention_rework": 0.6
+        }
+      },
+      {
+        "id": "multispectral_material_scan",
+        "effortUnits": 2,
+        "utilityCost": 1.8,
+        "positiveLikelihoodByHypothesis": {
+          "surviving_original_fabric": 0.75,
+          "later_repair": 0.3,
+          "historic_intervention_rework": 0.7
+        }
+      },
+      {
+        "id": "ornamental_subtype_catalog",
+        "effortUnits": 1,
+        "utilityCost": 0.4,
+        "positiveLikelihoodByHypothesis": {
+          "surviving_original_fabric": 0.99,
+          "later_repair": 0.99,
+          "historic_intervention_rework": 0.01
+        }
+      }
+    ]
+  },
+  "expectedSyntheticOracle": {
+    "baselineBestAction": "preserve_in_situ",
+    "baselineExpectedUtility": 72,
+    "selectedSurveyIds": [
+      "stratigraphic_microsection"
+    ],
+    "expectedPostSurveyUtility": 79.125,
+    "grossEvsi": 7.125,
+    "totalUtilityCost": 2.5,
+    "netEvsi": 4.625,
+    "topExpectedInformationGainSurvey": "ornamental_subtype_catalog",
+    "topExpectedInformationGainBits": 0.6529738536349244
+  }
+}
