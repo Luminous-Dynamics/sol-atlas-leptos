@@ -1,0 +1,58 @@
+{
+  "benchmarkId": "sol-atlas-correlated-spatial-observations",
+  "version": "0.1.0",
+  "status": "synthetic-reference-oracle",
+  "invariants": [
+    {
+      "id": "INV-01",
+      "name": "complete-joint-outcome-space",
+      "expected": "each hypothesis defines all 2^m binary patterns exactly once"
+    },
+    {
+      "id": "INV-02",
+      "name": "normalized-conditional-distributions",
+      "expected": "joint probabilities per hypothesis are finite, bounded and sum to one"
+    },
+    {
+      "id": "INV-03",
+      "name": "selected-subset-marginalization",
+      "expected": "unselected outcomes are summed out from the declared joint distribution"
+    },
+    {
+      "id": "INV-04",
+      "name": "no-order-dependent-semantics",
+      "expected": "candidate ordering plus corresponding pattern-bit permutation yields identical semantic results"
+    },
+    {
+      "id": "INV-05",
+      "name": "independence-bias-is-visible",
+      "expected": "the evaluator reports exact joint EVSI and the naive conditional-independence comparator separately"
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "NEG-01",
+      "mutation": "Change a joint probability so its per-hypothesis distribution no longer sums to one.",
+      "expected": "reject",
+      "reason": "Unnormalized likelihood tables cannot define valid posterior probabilities."
+    },
+    {
+      "id": "NEG-02",
+      "mutation": "Remove one binary outcome pattern.",
+      "expected": "reject",
+      "reason": "The joint outcome space must be complete; missing patterns are not assumed to have zero probability."
+    },
+    {
+      "id": "NEG-03",
+      "mutation": "Add a non-binary character or an outcome pattern of the wrong length.",
+      "expected": "reject",
+      "reason": "Observation patterns must map unambiguously to the frozen survey inventory."
+    }
+  ],
+  "baselines": [
+    "exact conditional joint model",
+    "naive product of marginal likelihoods (known-invalid comparator when dependence exists)",
+    "single-survey selection",
+    "no-observation baseline"
+  ]
+}
