@@ -1,0 +1,76 @@
+{
+  "benchmarkId": "sol-atlas-spatial-uncertainty-calibration",
+  "version": "0.1.0",
+  "status": "synthetic-reference-corpus",
+  "invariants": [
+    {
+      "id": "INV-01",
+      "name": "proper-probabilistic-score-reporting",
+      "expected": "Brier score and log loss computed from frozen probability/outcome rows"
+    },
+    {
+      "id": "INV-02",
+      "name": "reliability-bin-transparency",
+      "expected": "ECE is accompanied by per-bin counts, mean probability, observed frequency and absolute gap"
+    },
+    {
+      "id": "INV-03",
+      "name": "selective-risk-reporting",
+      "expected": "risk and coverage are reported at each pre-registered confidence threshold"
+    },
+    {
+      "id": "INV-04",
+      "name": "interval-coverage-and-sharpness",
+      "expected": "empirical nominal interval coverage is paired with mean interval width and mean absolute error"
+    },
+    {
+      "id": "INV-05",
+      "name": "worst-stratum-reporting",
+      "expected": "worst sensor-group and worst-site interval coverage are reported"
+    },
+    {
+      "id": "INV-06",
+      "name": "whole-site-holdout-isolation",
+      "expected": "training and evaluation site sets are disjoint and all evaluation observations map to the holdout inventory"
+    },
+    {
+      "id": "INV-07",
+      "name": "deterministic-input-order-invariance",
+      "expected": "reordering rows does not change computed metrics"
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "NEG-01",
+      "mutation": "Place a site ID in both trainingSiteIds and evaluationSiteIds.",
+      "expected": "reject",
+      "reason": "Whole-site holdout leakage invalidates independent evaluation."
+    },
+    {
+      "id": "NEG-02",
+      "mutation": "Attach a prediction or metrology observation to a site absent from evaluationSiteIds.",
+      "expected": "reject",
+      "reason": "Every scored observation must belong to the frozen evaluation inventory."
+    },
+    {
+      "id": "NEG-03",
+      "mutation": "Use a probability below zero or above one.",
+      "expected": "reject",
+      "reason": "A predictive probability must be within the unit interval."
+    },
+    {
+      "id": "NEG-04",
+      "mutation": "Provide a metrology interval with lower95 greater than upper95.",
+      "expected": "reject",
+      "reason": "An inverted interval is malformed and cannot be scored."
+    }
+  ],
+  "baselines": [
+    "un calibrated model probabilities",
+    "post-hoc calibrated probabilities",
+    "conformal or ensemble interval method",
+    "human / independent survey-metrology reference",
+    "selective prediction with abstention"
+  ],
+  "qualificationBoundary": "Synthetic scores qualify metric implementations only. Real qualification requires independent whole-site holdouts and independently established reference measurements."
+}
