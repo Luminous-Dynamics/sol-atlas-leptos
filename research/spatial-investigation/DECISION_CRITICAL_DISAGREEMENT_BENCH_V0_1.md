@@ -1,6 +1,6 @@
 # Decision-Critical Spatial Disagreement Benchmark v0.1
 
-**Status:** research specification; synthetic reference not yet implemented  
+**Status:** research specification with a synthetic finite action-loss reference implemented; CI qualification pending  
 **Related issue:** https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/992
 
 ## Thesis
@@ -38,6 +38,10 @@ If model probabilities are defensible, calculate expected discrimination value f
 \mathbb E_{Y_q}\left[\min_a\mathbb E[L(a,H)\mid Y_q]\right].
 \]
 If probabilities are not defensible, use the robust policy envelope and regret frontier from #987 rather than inventing weights.
+
+## Executable finite reference boundary
+
+The companion Rust reference accepts explicit finite action-loss tables over named support units. It derives each hypothesis's preferred action set, computes support-weighted action disagreement, reports prediction range as a separate diagnostic, and chooses a local minimax-regret action without assigning probabilities to hypotheses. A unit contributes to the comparison only when it is declared known and has evidence for every admissible hypothesis. Unknown or incomplete support is reported as unqualified support, never as zero or safe. The reference is an oracle for the decision-comparison layer; upstream spatial functionals, likelihoods, causal lineage and utility qualification remain separate dependencies.
 
 ## Required output
 
