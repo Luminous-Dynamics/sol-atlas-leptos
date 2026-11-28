@@ -55,6 +55,54 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - name: Validate profile JSON Schemas and field-disposition ledger
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.26.0
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          def load(path):
+              return json.loads(Path(path).read_text(encoding="utf-8"))
+
+          checks = [
+              ("schemas/feature-extension.schema.json",
+               load("fixtures/feature-collection.json")["features"][0]["properties"]["solAtlas"]),
+              ("schemas/evidence-records.schema.json",
+               load("fixtures/evidence-records.json")),
+              ("schemas/field-disposition-ledger.schema.json",
+               load("fixtures/field-disposition-ledger.json")),
+          ]
+          for schema_path, instance in checks:
+              schema = load(schema_path)
+              Draft202012Validator.check_schema(schema)
+              errors = sorted(
+                  Draft202012Validator(schema).iter_errors(instance),
+                  key=lambda error: list(error.absolute_path),
+              )
+              if errors:
+                  raise SystemExit(
+                      f"{schema_path}: " + "; ".join(error.message for error in errors)
+                  )
+              print(f"VALID: {schema_path}")
+
+          ledger_schema = load("schemas/field-disposition-ledger.schema.json")
+          ledger_validator = Draft202012Validator(ledger_schema)
+          invalid_completion = load("fixtures/field-disposition-ledger.json")
+          invalid_completion["executionStatus"] = "completed"
+          invalid_completion["sourceArtifactDigest"] = "sha256:" + "a" * 64
+          invalid_completion["targetArtifactDigest"] = "sha256:" + "b" * 64
+          if ledger_validator.is_valid(invalid_completion):
+              raise SystemExit("NEGATIVE CONTROL FAILED: unassessed ledger accepted as completed")
+
+          missing_reason = load("fixtures/field-disposition-ledger.json")
+          del missing_reason["entries"][0]["reason"]
+          if ledger_validator.is_valid(missing_reason):
+              raise SystemExit("NEGATIVE CONTROL FAILED: not_assessed entry without reason accepted")
+          print("VALID: field-disposition ledger negative controls rejected")
+          PY
       - name: Format reference validator
         run: cargo fmt --manifest-path reference/Cargo.toml -- --check
       - name: Test evidence and rights invariants
