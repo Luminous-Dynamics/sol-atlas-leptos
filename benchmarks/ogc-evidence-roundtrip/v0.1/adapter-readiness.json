@@ -67,6 +67,31 @@
       "source": "https://pypi.org/project/pygeoapi-plugins/"
     },
     {
+      "id": "geoparquet-2-columnar",
+      "kind": "columnar_storage_adapter",
+      "candidate": "GeoParquet 2.0.0 / Parquet GEOMETRY and GEOGRAPHY logical types",
+      "qualificationState": "not_qualified",
+      "documentedCapabilities": [
+        "native Parquet GEOMETRY and GEOGRAPHY logical types",
+        "CRS metadata on geometry columns",
+        "row-group spatial statistics for pruning",
+        "multiple geometry columns"
+      ],
+      "documentedCaveat": "GeoParquet 2.0.0 is a storage-format candidate, not a replacement for JSON-FG API interchange or the Sol-Atlas evidence profile. The specification's geometry and CRS metadata do not by themselves preserve Sol-Atlas claim semantics, evidence rights, lineage, uncertainty, or decision contracts. These must be mapped to explicit typed columns and/or governed sidecar records and verified through semantic round-trip tests.",
+      "executionStatus": "not_executed",
+      "requiredTests": [
+        "pin Parquet writer and reader versions",
+        "round-trip primary and secondary geometry columns with CRS and epoch metadata",
+        "round-trip all Sol-Atlas profile properties and sidecar evidence references",
+        "verify nullability, nested property, timestamp and numeric precision behavior",
+        "compare canonical semantic digest before and after read/write",
+        "verify restricted evidence and derived-field rights non-interference",
+        "run field-disposition ledger and missing-field negative controls",
+        "measure row-group pruning and query throughput without weakening semantic checks"
+      ],
+      "source": "https://geoparquet.org/releases/v2.0.0/"
+    },
+    {
       "id": "geonovum-ogc-checker",
       "kind": "independent_conformance_validator",
       "candidate": "@geonovum/ogc-checker 1.3.2",
@@ -87,5 +112,8 @@
       "source": "https://github.com/Geonovum/ogc-checker"
     }
   ],
-  "qualificationRule": "A candidate adapter is not qualified by documentation or successful JSON parsing. Qualification requires pinned version, executed independent JSON-FG validation where applicable, semantic round-trip comparison and a complete field-disposition ledger."
+  "qualificationRule": "A candidate adapter is not qualified by documentation or successful JSON parsing. Qualification requires pinned version, executed independent JSON-FG validation where applicable, semantic round-trip comparison and a complete field-disposition ledger.",
+  "notes": [
+    "GeoParquet 2.0.0 is registered as a candidate columnar storage route, not as a substitute for JSON-FG or the evidence profile. Execution and semantic equivalence remain unverified."
+  ]
 }
