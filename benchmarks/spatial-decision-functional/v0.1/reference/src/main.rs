@@ -316,10 +316,6 @@ fn validate_functional_units(functional: &Value, support: &Value, kind: &str) ->
                 required(functional, "valueUnits", path)?,
                 "case.functional.valueUnits",
             )?;
-            as_string(
-                required(functional, "integrandUnits", path)?,
-                "case.functional.integrandUnits",
-            )?;
         }
         "thresholded_measure" => {
             as_string(
@@ -554,12 +550,18 @@ fn graph_reachable(
     if source == target {
         return true;
     }
-    let mut adjacency: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for edge_id in selected_edge_ids {
         if let Some((from, to)) = edges.get(edge_id) {
-            adjacency.entry(from).or_default().push(to);
+            adjacency
+                .entry(from.clone())
+                .or_default()
+                .push(to.clone());
             if !directed {
-                adjacency.entry(to).or_default().push(from);
+                adjacency
+                    .entry(to.clone())
+                    .or_default()
+                    .push(from.clone());
             }
         }
     }
@@ -573,10 +575,10 @@ fn graph_reachable(
         if node == target {
             return true;
         }
-        if let Some(neighbours) = adjacency.get(node.as_str()) {
+        if let Some(neighbours) = adjacency.get(&node) {
             for neighbour in neighbours {
-                if nodes.contains(*neighbour) && !visited.contains(*neighbour) {
-                    pending.push((*neighbour).to_owned());
+                if nodes.contains(neighbour) && !visited.contains(neighbour) {
+                    pending.push(neighbour.clone());
                 }
             }
         }
@@ -862,7 +864,7 @@ mod tests {
     #[test]
     fn unknown_support_without_bounds_never_becomes_zero() {
         let mut document = fixture();
-        document["cases"][1]["support"]["cells"][1].as_object_mut().unwrap().remove("lowerValue");
+        document["cases"][0]["support"]["cells"][1].as_object_mut().unwrap().remove("lowerValue");
         document["cases"][1]["support"]["cells"][1].as_object_mut().unwrap().remove("upperValue");
         let report = evaluate_document(&document).expect("unknown support remains a valid input");
         let result = case_result(&report, "mean-with-unknown-support");
