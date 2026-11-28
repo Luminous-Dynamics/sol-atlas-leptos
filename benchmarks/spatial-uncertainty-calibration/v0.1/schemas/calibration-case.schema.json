@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:luminous-dynamics:sol-atlas:spatial-uncertainty-calibration:0.1",
+  "type": "object",
+  "required": [
+    "benchmarkId",
+    "version",
+    "fixtureStatus",
+    "nominalIntervalLevel",
+    "calibrationBins",
+    "trainingSiteIds",
+    "evaluationSiteIds",
+    "selectiveConfidenceThresholds",
+    "probabilityPredictions",
+    "metrologyObservations",
+    "bootstrapReplicates",
+    "bootstrapSeed",
+    "metrologyReceipts"
+  ],
+  "properties": {
+    "benchmarkId": {
+      "const": "sol-atlas-spatial-uncertainty-calibration"
+    },
+    "version": {
+      "const": "0.1.0"
+    },
+    "fixtureStatus": {
+      "const": "synthetic"
+    },
+    "nominalIntervalLevel": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "calibrationBins": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 50
+    },
+    "trainingSiteIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evaluationSiteIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "selectiveConfidenceThresholds": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0.5,
+        "maximum": 1
+      }
+    },
+    "probabilityPredictions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "predictionId",
+          "siteId",
+          "sensorGroup",
+          "probability",
+          "outcome"
+        ],
+        "properties": {
+          "predictionId": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "sensorGroup": {
+            "type": "string"
+          },
+          "probability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "outcome": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "metrologyObservations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "observationId",
+          "siteId",
+          "sensorGroup",
+          "referenceValue",
+          "estimate",
+          "lower95",
+          "upper95",
+          "receiptId"
+        ],
+        "properties": {
+          "observationId": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "sensorGroup": {
+            "type": "string"
+          },
+          "referenceValue": {
+            "type": "number"
+          },
+          "estimate": {
+            "type": "number"
+          },
+          "lower95": {
+            "type": "number"
+          },
+          "upper95": {
+            "type": "number"
+          },
+          "receiptId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "bootstrapReplicates": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 20000
+    },
+    "bootstrapSeed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "metrologyReceipts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "receiptId",
+          "receiptStatus",
+          "siteId",
+          "campaignId",
+          "instrument",
+          "calibration",
+          "measurementSetup",
+          "environment",
+          "uncertaintyBudget",
+          "referenceMeasurement",
+          "processingProvenance"
+        ],
+        "properties": {
+          "receiptId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "receiptStatus": {
+            "const": "synthetic_fixture"
+          },
+          "siteId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "campaignId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "instrument": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "instrumentId",
+              "modality",
+              "manufacturer",
+              "model",
+              "serialToken"
+            ],
+            "properties": {
+              "instrumentId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "modality": {
+                "enum": [
+                  "tls",
+                  "photogrammetry",
+                  "mobile_lidar",
+                  "total_station",
+                  "gnss"
+                ]
+              },
+              "manufacturer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "serialToken": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "calibration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "calibrationDate",
+              "validUntil",
+              "certificateDigest",
+              "referenceStandard"
+            ],
+            "properties": {
+              "status": {
+                "const": "not_supplied_synthetic_fixture"
+              },
+              "calibrationDate": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "validUntil": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "certificateDigest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "referenceStandard": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "measurementSetup": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "coordinateReferenceSystem",
+              "linearUnit",
+              "acquisitionMethod",
+              "acquisitionConfigurationDigest",
+              "processingFrame"
+            ],
+            "properties": {
+              "coordinateReferenceSystem": {
+                "type": "string",
+                "minLength": 1
+              },
+              "linearUnit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "acquisitionMethod": {
+                "type": "string",
+                "minLength": 1
+              },
+              "acquisitionConfigurationDigest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "processingFrame": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "environment": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "airTemperatureC",
+              "airTemperatureStandardUncertaintyC",
+              "relativeHumidityPercent",
+              "relativeHumidityStandardUncertaintyPercent"
+            ],
+            "properties": {
+              "airTemperatureC": {
+                "type": "number"
+              },
+              "airTemperatureStandardUncertaintyC": {
+                "type": "number",
+                "minimum": 0
+              },
+              "relativeHumidityPercent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "relativeHumidityStandardUncertaintyPercent": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          },
+          "uncertaintyBudget": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "unit",
+              "components",
+              "covarianceTerms",
+              "combinedStandardUncertainty",
+              "coverageFactor",
+              "expandedUncertainty"
+            ],
+            "properties": {
+              "status": {
+                "const": "illustrative_only_not_metrologically_validated"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "components": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "componentId",
+                    "type",
+                    "distribution",
+                    "standardUncertainty",
+                    "sensitivityCoefficient",
+                    "degreesOfFreedom"
+                  ],
+                  "properties": {
+                    "componentId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "type": {
+                      "enum": [
+                        "A",
+                        "B"
+                      ]
+                    },
+                    "distribution": {
+                      "enum": [
+                        "normal",
+                        "rectangular",
+                        "triangular",
+                        "uniform",
+                        "other"
+                      ]
+                    },
+                    "standardUncertainty": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "sensitivityCoefficient": {
+                      "type": "number"
+                    },
+                    "degreesOfFreedom": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  }
+                }
+              },
+              "covarianceTerms": {
+                "type": "array"
+              },
+              "combinedStandardUncertainty": {
+                "type": "number",
+                "minimum": 0
+              },
+              "coverageFactor": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "expandedUncertainty": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          },
+          "referenceMeasurement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "method",
+              "referenceInstrument",
+              "referenceStandard",
+              "checkPointCount",
+              "referenceDatasetDigest"
+            ],
+            "properties": {
+              "status": {
+                "const": "synthetic_only_no_physical_reference"
+              },
+              "method": {
+                "type": "string",
+                "minLength": 1
+              },
+              "referenceInstrument": {
+                "type": "string",
+                "minLength": 1
+              },
+              "referenceStandard": {
+                "type": "string",
+                "minLength": 1
+              },
+              "checkPointCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "referenceDatasetDigest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "processingProvenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pipelineId",
+              "softwareId",
+              "softwareVersion",
+              "configurationDigest",
+              "inputDatasetDigest",
+              "outputDatasetDigest"
+            ],
+            "properties": {
+              "pipelineId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "softwareId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "softwareVersion": {
+                "type": "string",
+                "minLength": 1
+              },
+              "configurationDigest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "inputDatasetDigest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "outputDatasetDigest": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
