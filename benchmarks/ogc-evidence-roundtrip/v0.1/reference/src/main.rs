@@ -80,7 +80,9 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
                 &format!("{path}.rights.{capability}"),
             );
             if !["allowed", "prohibited", "pending", "unknown"].contains(&state) {
-                fail(format!("invalid rights state at {path}.rights.{capability}"));
+                fail(format!(
+                    "invalid rights state at {path}.rights.{capability}"
+                ));
             }
         }
 
@@ -205,9 +207,11 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
                     ));
                 }
 
-                let record = record_map
-                    .get(id)
-                    .unwrap_or_else(|| fail(format!("association {id} has no evidence record dependency")));
+                let record = record_map.get(id).unwrap_or_else(|| {
+                    fail(format!(
+                        "association {id} has no evidence record dependency"
+                    ))
+                });
                 if string(
                     required(record, "relation", &format!("record {id}")),
                     &format!("record {id}.relation"),
@@ -398,8 +402,7 @@ mod tests {
     fn restricted_linked_record_details_do_not_change_public_projection() {
         let (feature, evidence) = fixtures();
         let mut restricted = evidence.clone();
-        restricted["records"][1]["rights"]["recordVisibility"] =
-            Value::String("prohibited".into());
+        restricted["records"][1]["rights"]["recordVisibility"] = Value::String("prohibited".into());
         restricted["records"][1]["rights"]["metadataVisibility"] =
             Value::String("prohibited".into());
         let baseline = validate(&feature, &restricted);
@@ -418,7 +421,9 @@ mod tests {
         changed_feature["features"][0]["properties"]["solAtlas"]["provenance"]["inputDigests"][1] =
             changed["records"][1]["payloadDigest"].clone();
         changed_feature["features"][0]["properties"]["solAtlas"]["provenance"]["outputDigest"] =
-            Value::String("sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd".into());
+            Value::String(
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd".into(),
+            );
         changed_feature["features"][0]["properties"]["solAtlas"]["provenance"]["privateTrace"] =
             Value::String("hidden trace must not escape".into());
 
@@ -443,8 +448,7 @@ mod tests {
     fn rejects_support_counter_overlap() {
         let (mut feature, evidence) = fixtures();
         let duplicate =
-            feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["supports"]
-                [0]
+            feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["supports"][0]
                 .clone();
         feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["contradicts"]
             .as_array_mut()
@@ -466,8 +470,8 @@ mod tests {
     #[should_panic(expected = "relation does not match bucket")]
     fn rejects_counter_evidence_promoted_to_support() {
         let (mut feature, evidence) = fixtures();
-        feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["supports"][0]
-            ["relation"] = Value::String("contradicts".into());
+        feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["supports"][0]["relation"] =
+            Value::String("contradicts".into());
         let _ = validate(&feature, &evidence);
     }
 
