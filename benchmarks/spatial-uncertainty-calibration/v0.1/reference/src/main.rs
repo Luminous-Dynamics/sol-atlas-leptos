@@ -875,7 +875,10 @@ mod tests {
         let mut case = fixture();
         case["evaluationSiteIds"].as_array_mut().unwrap().pop();
         for field in ["probabilityPredictions", "metrologyObservations"] {
-            case[field].as_array_mut().unwrap().retain(|row| row["siteId"] != "site-gamma");
+            case[field]
+                .as_array_mut()
+                .unwrap()
+                .retain(|row| row["siteId"] != "site-gamma");
         }
         let _ = calculate(&case);
     }
@@ -959,3 +962,4 @@ mod tests {
         assert_eq!(calculate(&fixture()), calculate(&case));
     }
 }
+
