@@ -80,7 +80,6 @@
           "enum": ["weighted_mean", "weighted_total", "line_integral", "thresholded_measure", "connectivity"]
         },
         "valueUnits": { "type": "string", "minLength": 1 },
-        "integrandUnits": { "type": "string", "minLength": 1 },
         "thresholdUnits": { "type": "string", "minLength": 1 },
         "threshold": { "type": "number" },
         "decisionThreshold": { "type": "number" },
@@ -97,7 +96,7 @@
         },
         {
           "if": { "properties": { "kind": { "const": "line_integral" } }, "required": ["kind"] },
-          "then": { "required": ["valueUnits", "integrandUnits"] }
+          "then": { "required": ["valueUnits"] }
         },
         {
           "if": { "properties": { "kind": { "const": "thresholded_measure" } }, "required": ["kind"] },
