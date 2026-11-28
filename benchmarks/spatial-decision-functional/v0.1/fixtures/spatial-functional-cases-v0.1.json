@@ -115,7 +115,6 @@
       "functional": {
         "kind": "weighted_total",
         "valueUnits": "kg/m3",
-        "integrandUnits": "kg/m3",
         "outputUnits": "kg"
       },
       "support": {
@@ -157,7 +156,6 @@
       "functional": {
         "kind": "line_integral",
         "valueUnits": "risk-unit/km",
-        "integrandUnits": "risk-unit/km",
         "outputUnits": "risk-unit"
       },
       "support": {
