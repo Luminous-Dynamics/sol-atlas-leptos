@@ -51,12 +51,12 @@
     {
       "id": "INV-10",
       "name": "lower-tail-cvar-frontier",
-      "expected": "maximize weighted average net EVSI in the worst tail mass τ probability mass, with tail mass τ 1 reducing to nominal expectation"
+      "expected": "maximize mean net EVSI in the worst tail-mass τ of scenario probability; τ=1 reduces to nominal expectation"
     },
     {
       "id": "INV-11",
       "name": "tail-mass-correctness",
-      "expected": "scenario probability is split at the tail mass τ boundary when required; normalized tail weights sum to one"
+      "expected": "scenario probability is split at the tail-mass τ boundary when required; normalized tail weights sum to one"
     }
   ],
   "negativeControls": [
