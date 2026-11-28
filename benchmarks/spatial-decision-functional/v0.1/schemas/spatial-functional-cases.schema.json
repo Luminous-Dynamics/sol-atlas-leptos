@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-decision-functional-v0.1.json",
+  "title": "Sol-Atlas Spatial Decision Functional Fixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fixtureStatus", "worldWeightSemantics", "cases"],
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "fixtureStatus": { "const": "synthetic" },
+    "worldWeightSemantics": { "const": "exact_probability" },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "supportCell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "measure", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "measure": { "type": "number", "exclusiveMinimum": 0 },
+        "status": { "enum": ["observed", "unknown"] },
+        "lowerValue": { "type": "number" },
+        "upperValue": { "type": "number" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "unknown" } }, "required": ["status"] },
+          "then": {
+            "oneOf": [
+              { "not": { "anyOf": [{ "required": ["lowerValue"] }, { "required": ["upperValue"] }] } },
+              { "required": ["lowerValue", "upperValue"] }
+            ]
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "observed" } }, "required": ["status"] },
+          "then": { "not": { "anyOf": [{ "required": ["lowerValue"] }, { "required": ["upperValue"] }] } }
+        }
+      ]
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "supportId", "supportRevision", "geometryDigest", "coordinateReference",
+        "verticalDatum", "coordinateEpoch", "measureKind", "measureUnits",
+        "targetMeasure", "cells"
+      ],
+      "properties": {
+        "supportId": { "type": "string", "minLength": 1 },
+        "supportRevision": { "type": "string", "minLength": 1 },
+        "geometryDigest": { "$ref": "#/$defs/digest" },
+        "coordinateReference": { "type": "string", "minLength": 1 },
+        "verticalDatum": { "type": "string", "minLength": 1 },
+        "coordinateEpoch": { "type": "string", "minLength": 1 },
+        "measureKind": { "type": "string", "minLength": 1 },
+        "measureUnits": { "type": "string", "minLength": 1 },
+        "targetMeasure": { "type": "number", "minimum": 0 },
+        "cells": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/supportCell" }
+        }
+      }
+    },
+    "functional": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "outputUnits"],
+      "properties": {
+        "kind": {
+          "enum": ["weighted_mean", "weighted_total", "line_integral", "thresholded_measure", "connectivity"]
+        },
+        "valueUnits": { "type": "string", "minLength": 1 },
+        "integrandUnits": { "type": "string", "minLength": 1 },
+        "thresholdUnits": { "type": "string", "minLength": 1 },
+        "threshold": { "type": "number" },
+        "decisionThreshold": { "type": "number" },
+        "outputUnits": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "weighted_mean" } }, "required": ["kind"] },
+          "then": { "required": ["valueUnits"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "weighted_total" } }, "required": ["kind"] },
+          "then": { "required": ["valueUnits", "integrandUnits"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "line_integral" } }, "required": ["kind"] },
+          "then": { "required": ["valueUnits", "integrandUnits"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "thresholded_measure" } }, "required": ["kind"] },
+          "then": { "required": ["valueUnits", "thresholdUnits", "threshold"] }
+        }
+      ]
+    },
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["worldId", "weight"],
+      "properties": {
+        "worldId": { "type": "string", "minLength": 1 },
+        "weight": { "type": "number", "exclusiveMinimum": 0 },
+        "values": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "activeEdgeIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "unknownEdgeIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["directed", "sourceNode", "targetNode", "nodes", "edges"],
+      "properties": {
+        "directed": { "type": "boolean" },
+        "sourceNode": { "type": "string", "minLength": 1 },
+        "targetNode": { "type": "string", "minLength": 1 },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "edges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/edge" }
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caseId", "functional", "support", "worlds"],
+      "properties": {
+        "caseId": { "type": "string", "minLength": 1 },
+        "functional": { "$ref": "#/$defs/functional" },
+        "support": { "$ref": "#/$defs/support" },
+        "worlds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/world" }
+        },
+        "graph": { "$ref": "#/$defs/graph" }
+      }
+    }
+  }
+}
