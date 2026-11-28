@@ -1,0 +1,9 @@
+[package]
+name = "sol-atlas-spatial-decision-functional"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Exact finite reference for spatial decision-functional qualification"
+
+[dependencies]
+serde_json = "1"
