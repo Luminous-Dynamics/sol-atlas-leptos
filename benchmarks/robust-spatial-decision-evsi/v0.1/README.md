@@ -90,3 +90,22 @@ For a fixed portfolio, the lower-tail reward statistic sorts scenario net EVSI f
 cargo test --manifest-path reference/Cargo.toml
 cargo run --manifest-path reference/Cargo.toml -- fixtures/robust-decision-case.json
 ```
+
+
+## Spatial uncertainty baselines update (2026-11)
+
+The spatial calibration comparison should include **Localized Spatial Conformal Prediction (LSCP)**, presented at ICML 2026, alongside ordinary split conformal, GeoCP, GeoSIMCP, bootstrap and provider-native predictive samples. LSCP combines local quantile regression with conformal calibration; its stated guarantees depend on spatial exchangeability and, for asymptotic conditional coverage, stationarity and spatial mixing. Do not transfer those guarantees to arbitrary spatial shifts.
+
+A 2026 GeoSIMCP study explicitly combines geographic distance and feature-space similarity to address nearby but process-dissimilar locations. This reinforces a key challenge case for robust EVSI: geographic proximity alone must not imply likelihood transportability.
+
+Benchmark policy comparison must keep three axes separate:
+- probability-model calibration and applicability;
+- ambiguity-set robustness and policy regret;
+- observation value under the decision utility.
+
+A robust policy score cannot repair a misspecified likelihood or an unsupported ambiguity set. Record the provenance and empirical basis for each uncertainty radius, likelihood shift and acquisition-cost range.
+
+References:
+- Jiang & Xie (2026), [Spatial Conformal Inference through Localized Quantile Regression](https://proceedings.mlr.press/v306/jiang26at.html), ICML/PMLR 306.
+- Luo (2026), [Quantifying Uncertainty in Spatial Prediction for Nonstationary Spatial Processes](https://doi.org/10.1080/24694452.2026.2639721), GeoSIMCP.
+- [OGC JSON-FG 1.0.0](https://www.ogc.org/standards/json-fg/), released 2026-05-21.
