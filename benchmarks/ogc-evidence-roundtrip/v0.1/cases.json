@@ -4,7 +4,8 @@
   "status": "draft-fixture-corpus",
   "fixtureFiles": [
     "fixtures/feature-collection.json",
-    "fixtures/evidence-records.json"
+    "fixtures/evidence-records.json",
+    "fixtures/field-disposition-ledger.json"
   ],
   "expectedBaseline": {
     "featureCount": 1,
@@ -16,7 +17,9 @@
     "hypothesisAlternatives": 2,
     "selectedHypothesisCount": 0,
     "rightsEscalations": 0,
-    "restrictedContentEmbedded": 0
+    "restrictedContentEmbedded": 0,
+    "fieldDispositionEntries": 9,
+    "unassessedFieldDispositionEntries": 9
   },
   "invariants": [
     {
@@ -103,6 +106,11 @@
       "id": "INV-17",
       "name": "restricted-linked-metadata-noninterference",
       "expected": "changes to hidden linked record IDs, summaries and digests do not change the public semantic projection"
+    },
+    {
+      "id": "INV-18",
+      "name": "field-disposition-ledger-completeness",
+      "expected": "every profile field has an explicit disposition; a route cannot be complete while any entry remains not_assessed or required execution digests are absent"
     }
   ],
   "negativeControls": [
@@ -213,6 +221,12 @@
       "mutation": "Change only the identifier, summary and digest of a linked record whose recordVisibility and metadataVisibility are prohibited; update private references consistently.",
       "expected": "same-public-output",
       "reason": "Restricted linked metadata must not leak through association references or provenance digest lists."
+    },
+    {
+      "id": "NEG-19",
+      "mutation": "Mark the field-disposition ledger completed while entries remain not_assessed or source/target artifact digests are absent.",
+      "expected": "reject",
+      "reason": "An unexecuted or incompletely accounted-for adapter route must never be reported as qualified."
     }
   ],
   "qualificationRules": {
@@ -220,15 +234,17 @@
     "negativeControlQualification": "100% of registered negative controls rejected or quarantined with a reason code.",
     "privacyAndRights": "Zero rights escalations and zero restricted-source disclosures.",
     "replayQualification": "Canonical semantic projection digest identical across three repeated runs.",
-    "ogcQualification": "Run the official OGC API - Features ETS for advertised API classes separately; these profile fixtures alone do not confer OGC conformance."
+    "ogcQualification": "Run the official OGC API - Features ETS for advertised API classes separately; these profile fixtures alone do not confer OGC conformance.",
+    "adapterRouteQualification": "A route may be reported completed only when every registered source field has a terminal disposition, source and target artifact digests are present, and the adapter/environment versions are recorded."
   },
   "schemas": {
     "featureExtension": "schemas/feature-extension.schema.json",
     "evidenceRecords": "schemas/evidence-records.schema.json",
-    "jsonSchemaDraft": "https://json-schema.org/draft/2020-12/schema"
+    "jsonSchemaDraft": "https://json-schema.org/draft/2020-12/schema",
+    "fieldDispositionLedger": "schemas/field-disposition-ledger.schema.json"
   },
   "validationBoundary": {
-    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations.",
+    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations. Field-disposition ledger states and conditional completion requirements.",
     "semanticValidatorRequired": [
       "cross-association ID disjointness",
       "association-to-record resolution and relation agreement",
@@ -236,7 +252,8 @@
       "rights capability non-escalation across transformation",
       "public-projection noninterference / side-channel checks",
       "CRS transform correctness and canonical geometry comparison",
-      "canonical provenance digest verification"
+      "canonical provenance digest verification",
+      "adapter field-disposition coverage against a frozen source-profile field inventory"
     ]
   }
 }
