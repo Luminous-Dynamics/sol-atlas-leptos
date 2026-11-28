@@ -233,6 +233,12 @@
       "mutation": "Embed syntheticPayload when contentRetrieval or publicDisclosure is pending or unknown (rather than explicitly allowed).",
       "expected": "reject",
       "reason": "The profile is fail-closed: both content retrieval and public disclosure must be explicitly allowed before content is embedded."
+    },
+    {
+      "id": "NEG-21",
+      "mutation": "Remove a required field from the field-disposition ledger or duplicate another field path.",
+      "expected": "reject",
+      "reason": "The adapter ledger must account for the frozen source-profile field inventory exactly once."
     }
   ],
   "qualificationRules": {
@@ -250,7 +256,7 @@
     "fieldDispositionLedger": "schemas/field-disposition-ledger.schema.json"
   },
   "validationBoundary": {
-    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations. Field-disposition ledger states and conditional completion requirements. Evidence payload embedding only when both contentRetrieval and publicDisclosure are explicitly allowed; pending/unknown rights do not qualify.",
+    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations. Field-disposition ledger states and conditional completion requirements. Evidence payload embedding only when both contentRetrieval and publicDisclosure are explicitly allowed; pending/unknown rights do not qualify. Semantic CI check compares the ledger's unique field paths with the frozen nine-field source-profile inventory and rejects missing or duplicate paths.",
     "semanticValidatorRequired": [
       "cross-association ID disjointness",
       "association-to-record resolution and relation agreement",

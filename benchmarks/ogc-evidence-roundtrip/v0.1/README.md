@@ -8,7 +8,7 @@ This directory contains a synthetic, implementation-neutral fixture corpus for t
 - `schemas/feature-extension.schema.json`: JSON Schema for the per-feature Sol-Atlas extension.
 - `schemas/evidence-records.schema.json`: JSON Schema for evidence metadata and rights dimensions; content is embedded only when both retrieval and public disclosure are explicitly allowed; pending or unknown rights fail closed.
 - `schemas/field-disposition-ledger.schema.json`: machine-readable ledger schema with conditional rules that prevent a route being marked completed while required evidence is absent or fields remain unassessed.
-- `cases.json`: expected baseline invariants and 20 registered negative controls.
+- `cases.json`: expected baseline invariants and 21 registered negative controls.
 
 See also [`SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md`](../../../docs/research/SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md) for current standards, industry baselines, benchmark tracks and falsifiable research hypotheses.
 
@@ -22,7 +22,7 @@ A dependency-light Rust validator is provided in `reference/`. Run `cargo test -
 
 ## Machine-readable field disposition
 
-Every adapter path must account for each field as preserved, transformed, omitted, blocked or not assessed. A route with `executionStatus: not_executed` is only a planned/registered route. A route cannot be marked completed until its source and target artifact digests are present and every field has a terminal disposition. The schema check includes negative controls for false completion, missing reasons, and payload embedding while retrieval or disclosure permission is pending/unknown.
+Every adapter path must account for each field as preserved, transformed, omitted, blocked or not assessed. A route with `executionStatus: not_executed` is only a planned/registered route. A route cannot be marked completed until its source and target artifact digests are present and every field has a terminal disposition. The schema check includes negative controls for false completion, missing reasons, missing/duplicate required field paths, and payload embedding while retrieval or disclosure permission is pending/unknown.
 
 ## Initial validation
 

@@ -101,6 +101,35 @@ jobs:
           del missing_reason["entries"][0]["reason"]
           if ledger_validator.is_valid(missing_reason):
               raise SystemExit("NEGATIVE CONTROL FAILED: not_assessed entry without reason accepted")
+          ledger_fixture = load("fixtures/field-disposition-ledger.json")
+          required_field_inventory = {
+              "Feature.id",
+              "Feature.geometry",
+              "Feature.properties.solAtlas.claim",
+              "Feature.properties.solAtlas.temporal",
+              "Feature.properties.solAtlas.uncertainty",
+              "Feature.properties.solAtlas.evidenceAssociations",
+              "Feature.properties.solAtlas.provenance",
+              "Feature.properties.solAtlas.hypothesisSet",
+              "EvidenceRecord.rights",
+          }
+
+          def covers_required_inventory(ledger):
+              paths = [entry["fieldPath"] for entry in ledger["entries"]]
+              return len(paths) == len(set(paths)) and set(paths) == required_field_inventory
+
+          if not covers_required_inventory(ledger_fixture):
+              raise SystemExit("FIELD INVENTORY FAILED: baseline ledger is incomplete or contains duplicates")
+
+          missing_field_ledger = copy.deepcopy(ledger_fixture)
+          missing_field_ledger["entries"] = [
+              entry for entry in missing_field_ledger["entries"]
+              if entry["fieldPath"] != "Feature.geometry"
+          ]
+          if covers_required_inventory(missing_field_ledger):
+              raise SystemExit("NEGATIVE CONTROL FAILED: ledger missing a required field was accepted")
+          print("VALID: frozen field inventory and missing-field negative control")
+
           restricted_payload = load("fixtures/evidence-records.json")
           restricted_payload["records"][1]["rights"]["contentRetrieval"] = "unknown"
           restricted_payload["records"][1]["rights"]["publicDisclosure"] = "allowed"
