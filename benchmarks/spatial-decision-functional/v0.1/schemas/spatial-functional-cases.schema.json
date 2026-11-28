@@ -93,7 +93,7 @@
         },
         {
           "if": { "properties": { "kind": { "const": "weighted_total" } }, "required": ["kind"] },
-          "then": { "required": ["valueUnits", "integrandUnits"] }
+          "then": { "required": ["valueUnits"] }
         },
         {
           "if": { "properties": { "kind": { "const": "line_integral" } }, "required": ["kind"] },
