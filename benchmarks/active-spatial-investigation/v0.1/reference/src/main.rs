@@ -76,11 +76,18 @@ fn as_number(value: &Value, path: &str) -> f64 {
 }
 
 fn parse_problem(case: &Value) -> Problem {
-    if as_string(required(case, "fixtureStatus", "case"), "case.fixtureStatus") != "synthetic" {
+    if as_string(
+        required(case, "fixtureStatus", "case"),
+        "case.fixtureStatus",
+    ) != "synthetic"
+    {
         fail("reference evaluator only accepts the registered synthetic fixture");
     }
     let decision = required(case, "decisionProblem", "case");
-    let hypotheses_values = as_array(required(decision, "hypotheses", "decisionProblem"), "hypotheses");
+    let hypotheses_values = as_array(
+        required(decision, "hypotheses", "decisionProblem"),
+        "hypotheses",
+    );
     if hypotheses_values.len() < 2 {
         fail("at least two hypotheses are required");
     }
@@ -101,7 +108,9 @@ fn parse_problem(case: &Value) -> Problem {
         hypotheses.push(Hypothesis { id, prior });
     }
     if (prior_sum - 1.0).abs() > EPSILON {
-        fail(format!("hypothesis priors must sum to 1.0, observed {prior_sum}"));
+        fail(format!(
+            "hypothesis priors must sum to 1.0, observed {prior_sum}"
+        ));
     }
 
     let action_values = as_array(required(decision, "actions", "decisionProblem"), "actions");
@@ -126,7 +135,8 @@ fn parse_problem(case: &Value) -> Problem {
 
     let max_effort_units = required(decision, "maxEffortUnits", "decisionProblem")
         .as_u64()
-        .unwrap_or_else(|| fail("maxEffortUnits must be a non-negative integer")) as usize;
+        .unwrap_or_else(|| fail("maxEffortUnits must be a non-negative integer"))
+        as usize;
     let survey_values = as_array(required(decision, "surveys", "decisionProblem"), "surveys");
     if survey_values.len() > 16 {
         fail("reference evaluator is limited to 16 survey candidates");
@@ -150,7 +160,11 @@ fn parse_problem(case: &Value) -> Problem {
         let mut positive_likelihood = BTreeMap::new();
         for hypothesis in &hypotheses {
             let probability = as_number(
-                required(probabilities, &hypothesis.id, &format!("{path}.positiveLikelihoodByHypothesis")),
+                required(
+                    probabilities,
+                    &hypothesis.id,
+                    &format!("{path}.positiveLikelihoodByHypothesis"),
+                ),
                 &format!("{path}.positiveLikelihoodByHypothesis.{}", hypothesis.id),
             );
             if !(0.0..=1.0).contains(&probability) {
@@ -189,9 +203,7 @@ fn best_action_value(problem: &Problem, probabilities: &[f64]) -> (String, f64) 
             .hypotheses
             .iter()
             .zip(probabilities.iter())
-            .map(|(hypothesis, probability)| {
-                probability * action.utilities[&hypothesis.id]
-            })
+            .map(|(hypothesis, probability)| probability * action.utilities[&hypothesis.id])
             .sum::<f64>();
         if best.as_ref().is_none_or(|(_, current)| value > *current) {
             best = Some((action.id.clone(), value));
@@ -200,7 +212,11 @@ fn best_action_value(problem: &Problem, probabilities: &[f64]) -> (String, f64) 
     best.unwrap_or_else(|| fail("no decision action available"))
 }
 
-fn evaluate_portfolio(problem: &Problem, selected_indices: &[usize], baseline: f64) -> PortfolioScore {
+fn evaluate_portfolio(
+    problem: &Problem,
+    selected_indices: &[usize],
+    baseline: f64,
+) -> PortfolioScore {
     let effort_units = selected_indices
         .iter()
         .map(|index| problem.surveys[*index].effort_units)
@@ -380,13 +396,19 @@ fn read_json(path: &str) -> Value {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let path = args.get(1).map(String::as_str).unwrap_or("fixtures/decision-case.json");
+    let path = args
+        .get(1)
+        .map(String::as_str)
+        .unwrap_or("fixtures/decision-case.json");
     if args.len() > 2 {
         eprintln!("usage: sol-atlas-active-investigation [decision-case.json]");
         process::exit(64);
     }
     let result = calculate(&read_json(path));
-    println!("{}", serde_json::to_string_pretty(&result).expect("result serializes"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&result).expect("result serializes")
+    );
 }
 
 #[cfg(test)]
@@ -405,7 +427,10 @@ mod tests {
     fn selects_observations_by_net_decision_value_not_entropy_alone() {
         let result = calculate(&fixture());
         assert_eq!(result["baseline"]["bestAction"], "preserve_in_situ");
-        close(result["baseline"]["expectedUtility"].as_f64().unwrap(), 72.0);
+        close(
+            result["baseline"]["expectedUtility"].as_f64().unwrap(),
+            72.0,
+        );
         assert_eq!(
             result["selectedSurveyIds"],
             json!(["stratigraphic_microsection"])
@@ -422,10 +447,7 @@ mod tests {
             result["informationGainRanking"][0]["surveyId"],
             "ornamental_subtype_catalog"
         );
-        assert_eq!(
-            result["selectedSurveyIds"][0],
-            "stratigraphic_microsection"
-        );
+        assert_eq!(result["selectedSurveyIds"][0], "stratigraphic_microsection");
     }
 
     #[test]
@@ -463,8 +485,8 @@ mod tests {
     #[should_panic(expected = "must be within [0, 1]")]
     fn rejects_invalid_likelihoods() {
         let mut case = fixture();
-        case["decisionProblem"]["surveys"][0]["positiveLikelihoodByHypothesis"]
-            ["later_repair"] = json!(1.2);
+        case["decisionProblem"]["surveys"][0]["positiveLikelihoodByHypothesis"]["later_repair"] =
+            json!(1.2);
         let _ = calculate(&case);
     }
 }
