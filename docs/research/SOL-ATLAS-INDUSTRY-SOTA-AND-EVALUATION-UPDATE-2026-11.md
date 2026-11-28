@@ -104,3 +104,59 @@ Sources:
 - https://pypi.org/project/pygeoapi-plugins/
 
 Sol-Atlas response: add Geonovum validation to CI at a pinned version, retain a negative control, publish adapter readiness as not-executed until evidence exists, and require full semantic round-trip plus field-disposition receipts before qualifying any adapter.
+
+
+## 2026-11-28 update: raise the comparison bar beyond basic calibration
+
+### Existing GIS capability is a serious baseline
+
+ArcGIS Pro Geostatistical Analyst already exposes mean error, RMSE, average standard error, mean standardized error, root-mean-square standardized error, 90% and 95% interval coverage, and—where supported by Empirical Bayesian Kriging (EBK) models—average CRPS. It also distinguishes cross-validation from validation on a held-out subset. Therefore, Sol-Atlas must not claim that reporting RMSE, interval coverage, standardized residuals, or CRPS is itself a differentiator. The matched benchmark should include these metrics where the compared provider exposes predictive distributions, and should record when a method cannot produce uncertainty outputs ([Esri Cross Validation](https://doc.esri.com/en/arcgis-pro/latest/tool-reference/geostatistical-analyst/cross-validation.html); [Esri Cross-Validation and Validation](https://doc.esri.com/en/arcgis-pro/latest/help/analysis/geostatistical-analyst/performing-cross-validation-and-validation.html)).
+
+A stronger contribution is to evaluate the *support and decision object* around those predictions: whether the same qualified support is used; whether the functional is fit for purpose; whether local/functional uncertainty remains calibrated under the deployment regime; whether restricted dependencies are withheld; and whether the recommended action remains robust as priors, likelihoods, costs, boundaries and utilities change.
+
+### Validation regime is part of the performance claim
+
+A 2026 tiered validation paper proposes random folds, a size-matched random control, coordinate clusters, nearest-neighbour graph communities, administrative holdouts and an external regional stress test. In its Baltimore case study, random validation was more optimistic than spatially separated and external-region tests; even coordinate clustering remained optimistic relative to external-region transfer. The authors also report repeated-seed variability, spatial autocorrelation and sensitivity to block scale ([Jiang, Wu & Liu, 2026](https://doi.org/10.1016/j.mex.2026.104072)).
+
+Sol-Atlas's validation contract is now organized as T0–T5. The companion split-integrity auditor is being implemented in [PR #996](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/996). It validates partition metadata only; it does not generate folds or prove performance. The required reporting ladder is:
+
+- T0/T1: random-mixture interpolation diagnostic and matched training-size control;
+- T2/T3: coordinate-buffered and graph-community separation within the sampled region;
+- T4: administrative-unit holdout;
+- T5: external region and independent campaign challenge.
+
+The benchmark receipt must state the highest tier actually run, dataset/support digests, sample counts, train/evaluation sites, buffer scale where applicable, seed variability, calibration and coverage, width/sharpness, residual spatial autocorrelation and worst-stratum performance. A lower-tier pass cannot be promoted into a higher-tier claim.
+
+### Industry positioning: integrate the engines, qualify their outputs
+
+| Existing capability | What it already does well | Sol-Atlas should add rather than duplicate |
+|---|---|---|
+| GIS / geostatistical platforms | Spatial data management, interpolation, cross-validation, prediction uncertainty and map products | Cross-provider support contracts, semantic claim qualification, evidence/rights lineage and decision-regret evaluation |
+| Geological modelling platforms | Domain-specific geological interpretation, uncertainty ensembles and drillhole-planning workflows | Independent comparison of competing interpretations and action consequences across providers, with applicability and evidence receipts |
+| Infrastructure digital-twin platforms | Federation of engineering, reality, GIS, IoT/sensor and enterprise/project data | Verify whether federated evidence is fit to justify a particular operational decision, with explicit uncertainty, support and rights constraints |
+| Spatial ETL / conversion tools | Broad format and schema transformation | Multi-hop semantic preservation receipts, derived-field non-interference and machine-readable field-loss accounting |
+
+This positioning avoids a weak "we are a better GIS" argument. Sol-Atlas should be a vendor-neutral qualification and investigation layer that accepts outputs from capable GIS, geology, metrology, reality-capture and digital-twin systems. It should only claim a measurable advantage where matched experiments show one.
+
+### Additional interoperability target: columnar geospatial storage
+
+GeoParquet 2.0.0, released 2026-11-05, is built around Parquet's native GEOMETRY/GEOGRAPHY logical types, CRS metadata on geometry columns and row-group spatial statistics. It is a valuable analytical-storage comparison, but not a replacement for JSON-FG feature exchange. Its geometry/CRS metadata does not by itself define Sol-Atlas evidence relations, claim contracts, rights or decision semantics. The adapter matrix now registers GeoParquet 2.0.0 as a candidate storage route, still not executed or qualified ([GeoParquet 2.0.0 specification](https://geoparquet.org/releases/v2.0.0/)).
+
+### Proposed stretch targets for matched independent evaluation
+
+These are prospective targets, not current achievements:
+
+1. **Exchange integrity:** 100% of declared profile fields receive a terminal disposition per adapter hop; zero silent semantic loss; zero accepted rights escalation; zero unauthorized public-output changes under restricted-source mutation controls.
+2. **Spatial decision advantage:** at matched evidence rights, support, stakeholder utility and acquisition budget, achieve at least 20% lower realized decision regret, *or* at least 20% lower acquisition effort at matched regret, against the strongest preregistered incumbent. Report confidence intervals and worst-site/stakeholder outcomes; fail the superiority claim if the independent sample cannot resolve the target.
+3. **Uncertainty quality:** evaluate proper scores, interval coverage and width, worst-site/sensor/community performance and calibration drift across the declared T0–T5 regimes. Coverage without a predeclared useful-width ceiling is not sufficient.
+4. **Investigation efficiency:** compare correlation-aware sequential EVSI and robust portfolio selection with random, highest-variance, highest-entropy, nominal-EVSI, expert and archive-first baselines. Report net regret reduction per unit cost, not only gross information gain.
+5. **Operations:** report deterministic replay, p50/p95 latency, peak memory, throughput, storage, recovery and failure/abstention rates under fixed hardware and workload.
+
+The 20% target is a stretch threshold for a prospective, powered independent study—not an estimate inferred from the synthetic fixtures. The benchmark must be allowed to falsify Sol-Atlas's superiority hypothesis.
+
+### Comparator reading
+
+- Esri, [Cross Validation (Geostatistical Analyst)](https://doc.esri.com/en/arcgis-pro/latest/tool-reference/geostatistical-analyst/cross-validation.html).
+- Esri, [Using cross validation to assess interpolation results](https://doc.esri.com/en/arcgis-pro/latest/help/analysis/geostatistical-analyst/performing-cross-validation-and-validation.html).
+- Jiang, Wu & Liu (2026), [A tiered spatial validation workflow for geographic prediction models](https://doi.org/10.1016/j.mex.2026.104072).
+- [GeoParquet 2.0.0 release and specification](https://geoparquet.org/releases/v2.0.0/).
