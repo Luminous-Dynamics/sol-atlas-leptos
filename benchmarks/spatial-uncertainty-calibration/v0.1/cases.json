@@ -57,6 +57,11 @@
       "id": "INV-11",
       "name": "metrology-traceability-fields",
       "expected": "instrument, calibration status, CRS/units, environment, uncertainty budget, reference survey and processing provenance are represented"
+    },
+    {
+      "id": "INV-12",
+      "name": "brier-reliability-resolution-decomposition",
+      "expected": "report forecast-category Brier decomposition into reliability, resolution and outcome uncertainty, reconstructing the overall Brier score"
     }
   ],
   "negativeControls": [
