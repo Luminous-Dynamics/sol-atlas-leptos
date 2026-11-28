@@ -47,6 +47,16 @@
       "id": "INV-09",
       "name": "tv-ambiguity-monotonicity",
       "expected": "optimal worst-case expected value cannot increase as the TV ambiguity radius grows"
+    },
+    {
+      "id": "INV-10",
+      "name": "lower-tail-cvar-frontier",
+      "expected": "maximize weighted average net EVSI in the worst alpha probability mass, with alpha 1 reducing to nominal expectation"
+    },
+    {
+      "id": "INV-11",
+      "name": "tail-mass-correctness",
+      "expected": "scenario probability is split at the alpha boundary when required; normalized tail weights sum to one"
     }
   ],
   "negativeControls": [
@@ -73,6 +83,12 @@
       "mutation": "Supply a total-variation ambiguity radius outside [0,1].",
       "expected": "reject",
       "reason": "TV distance between probability distributions lies in [0,1]."
+    },
+    {
+      "id": "NEG-05",
+      "mutation": "Set lower-tail CVaR alpha to zero or greater than one.",
+      "expected": "reject",
+      "reason": "The lower-tail probability mass must lie in (0,1]."
     }
   ],
   "baselines": [
