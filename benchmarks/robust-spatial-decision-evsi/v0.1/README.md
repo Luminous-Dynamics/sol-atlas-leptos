@@ -50,7 +50,7 @@ The policy changes near a TV radius of 0.6632 for this fixture. This is a sensit
 | 0.5 | Multispectral material scan | 16.2 |
 | 1.0 | Multispectral material scan | 19.6 |
 
-The policy changes between α=0.1 and α=0.2 in this fixture. The tail level is a risk preference, not a learned physical parameter; it should be pre-registered with decision-makers.
+The policy changes between tail mass τ=0.1 and τ=0.2 in this fixture. The tail mass is a risk preference, not a learned physical parameter; it should be pre-registered with decision-makers.
 
 
 This is intentionally constructed. It is not an empirical claim about multispectral scanning or archival research.
