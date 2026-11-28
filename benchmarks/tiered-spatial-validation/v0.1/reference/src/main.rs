@@ -319,7 +319,8 @@ fn evaluate_case(
         "matchedTrainingCount": matched_training_count,
         "coordinateSeparation": minimum_distance,
         "disjointDimensions": disjoint_dimension_report,
-        "metricScoringPermitted": true
+        "splitIntegrityAccepted": true,
+        "scoringAuthorization": "ONLY_WITHIN_DECLARED_CLAIM_CEILING"
     }))
 }
 
@@ -336,7 +337,7 @@ fn evaluate_document(document: &Value) -> Result<Value, String> {
     if schema_version != "0.1.0" {
         return Err(format!("unsupported schemaVersion {schema_version}"));
     }
-    validate_digest(
+    let protocol_digest = validate_digest(
         required(document, "protocolDigest", "document")?,
         "document.protocolDigest",
     )?;
@@ -367,13 +368,30 @@ fn evaluate_document(document: &Value) -> Result<Value, String> {
         .iter()
         .filter_map(|row| row["regime"].as_str().map(str::to_owned))
         .collect();
+    let expected_regimes: BTreeSet<String> = [
+        "T0_RANDOM_DIAGNOSTIC",
+        "T1_MATCHED_SIZE_RANDOM_CONTROL",
+        "T2_COORDINATE_BUFFERED",
+        "T3_GRAPH_COMMUNITY_HOLDOUT",
+        "T4_ADMINISTRATIVE_HOLDOUT",
+        "T5_EXTERNAL_REGION_CAMPAIGN",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
+    let omitted_regimes: Vec<String> = expected_regimes
+        .difference(&observed_regimes)
+        .cloned()
+        .collect();
 
     Ok(json!({
         "benchmarkId": "sol-atlas-tiered-spatial-validation-contracts",
         "version": "0.1.0",
         "fixtureStatus": "synthetic",
         "protocolSealed": true,
+        "protocolDigest": protocol_digest,
         "observedRegimes": observed_regimes,
+        "omittedRegimes": omitted_regimes,
         "claimCeiling": "SPLIT_INTEGRITY_ONLY_NO_MODEL_PERFORMANCE_CLAIM",
         "caseCount": results.len(),
         "results": results
@@ -438,6 +456,23 @@ mod tests {
         assert_eq!(
             case(&report, "t5-external")["claimCeiling"],
             "EXTERNAL_REGION_AND_CAMPAIGN_TRANSFER_CHALLENGE"
+        );
+    }
+
+    #[test]
+    fn receipt_lists_omitted_validation_tiers() {
+        let mut document = fixture();
+        document["cases"].as_array_mut().unwrap().remove(0);
+        let report = evaluate_document(&document).expect("partial plan evaluates");
+        assert_eq!(report["protocolDigest"], document["protocolDigest"]);
+        assert_eq!(report["omittedRegimes"][0], "T0_RANDOM_DIAGNOSTIC");
+        assert_eq!(
+            case(&report, "t1-matched-random")["splitIntegrityAccepted"],
+            true
+        );
+        assert_eq!(
+            case(&report, "t1-matched-random")["scoringAuthorization"],
+            "ONLY_WITHIN_DECLARED_CLAIM_CEILING"
         );
     }
 
