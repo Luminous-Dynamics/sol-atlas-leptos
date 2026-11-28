@@ -9,7 +9,7 @@ A low average geometric error does not establish that uncertainty estimates are 
 This benchmark provides an executable reference for:
 
 - Brier score and log loss (proper scoring rules for probabilistic predictions);
-- equal-width expected calibration error (ECE) with the reliability-bin counts and gaps retained;
+- equal-width expected calibration error (ECE) with the reliability-bin counts and gaps retained. ECE is diagnostic only because it is binning- and sample-size-sensitive;
 - selective risk versus coverage when low-confidence predictions are withheld;
 - empirical coverage and width of nominal 95% spatial measurement intervals;
 - mean absolute metrology error;
@@ -37,9 +37,9 @@ These results are designed to demonstrate that aggregate metrics and worst-strat
 
 1. Split by whole site, survey campaign and acquisition session; do not let scans from one physical site leak across train and evaluation.
 2. Keep a sealed evaluation set and independent reference metrology (TLS/total station/GNSS or another qualified measurement process).
-3. Report Brier and log loss alongside reliability diagrams; ECE depends on binning and must never be the sole calibration metric.
+3. Report Brier and log loss alongside reliability diagrams; ECE depends on binning and sample size and must never be the sole calibration metric. Add adaptive-bin / debiased ECE and confidence intervals for real evaluation.
 4. Report interval coverage with interval width and uncertainty units/method. A nominal 95% interval with 95% coverage but unusably wide bounds is not sufficient.
-5. Break out sensor, material, scale, occlusion, operator, environment and site strata; publish worst-group coverage and selective risk.
+5. Break out sensor, material, scale, occlusion, operator, environment and site strata; publish worst-group coverage and selective risk. Include spatially weighted conformal baselines where local dependence or nonstationarity is material.
 6. Compare human / survey-metrology baseline, uncalibrated model, post-hoc calibrated model, ensemble or conformal method, and abstention policies on the same frozen holdouts.
 7. Pre-register target coverage and statistical confidence bounds before the evaluation. Small samples such as this fixture are only for implementation checks.
 
