@@ -288,7 +288,7 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
             fail(format!("{path} must retain at least one hypothesis"));
         }
 
-        semantic_associations.sort_by(|a, b| a.to_string().cmp(&b.to_string()));
+        semantic_associations.sort_by_key(Value::to_string);
         let visible_digests: BTreeSet<String> = semantic_associations
             .iter()
             .filter_map(|association| {
