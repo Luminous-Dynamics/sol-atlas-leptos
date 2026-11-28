@@ -841,6 +841,15 @@ mod tests {
     }
 
     #[test]
+    fn complete_weighted_mean_uses_declared_support_and_decision_threshold() {
+        let report = evaluate_document(&fixture()).expect("fixture must evaluate");
+        let result = case_result(&report, "mean-full-support");
+        assert_eq!(result["status"], "QUALIFIED");
+        assert!((result["summary"]["expectedValue"].as_f64().unwrap() - (47.0 / 12.0)).abs() < EPSILON);
+        assert!((result["summary"]["probabilityAboveDecisionThreshold"].as_f64().unwrap() - 0.75).abs() < EPSILON);
+    }
+
+    #[test]
     fn thresholded_extent_keeps_unknown_area_as_an_interval() {
         let report = evaluate_document(&fixture()).expect("fixture must evaluate");
         let result = case_result(&report, "thresholded-area-with-unknown-cell");
