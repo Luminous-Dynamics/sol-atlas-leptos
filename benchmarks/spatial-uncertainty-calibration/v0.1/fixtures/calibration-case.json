@@ -1,0 +1,121 @@
+{
+  "benchmarkId": "sol-atlas-spatial-uncertainty-calibration",
+  "version": "0.1.0",
+  "fixtureStatus": "synthetic",
+  "nominalIntervalLevel": 0.95,
+  "calibrationBins": 5,
+  "trainingSiteIds": [
+    "train-site-001",
+    "train-site-002"
+  ],
+  "evaluationSiteIds": [
+    "site-alpha",
+    "site-beta",
+    "site-gamma"
+  ],
+  "selectiveConfidenceThresholds": [
+    0.6,
+    0.8,
+    0.9
+  ],
+  "probabilityPredictions": [
+    {
+      "predictionId": "p-001",
+      "siteId": "site-alpha",
+      "sensorGroup": "tls",
+      "probability": 0.1,
+      "outcome": false
+    },
+    {
+      "predictionId": "p-002",
+      "siteId": "site-beta",
+      "sensorGroup": "photogrammetry",
+      "probability": 0.3,
+      "outcome": false
+    },
+    {
+      "predictionId": "p-003",
+      "siteId": "site-gamma",
+      "sensorGroup": "tls",
+      "probability": 0.6,
+      "outcome": true
+    },
+    {
+      "predictionId": "p-004",
+      "siteId": "site-alpha",
+      "sensorGroup": "photogrammetry",
+      "probability": 0.8,
+      "outcome": true
+    },
+    {
+      "predictionId": "p-005",
+      "siteId": "site-beta",
+      "sensorGroup": "tls",
+      "probability": 0.9,
+      "outcome": true
+    },
+    {
+      "predictionId": "p-006",
+      "siteId": "site-gamma",
+      "sensorGroup": "photogrammetry",
+      "probability": 0.99,
+      "outcome": false
+    }
+  ],
+  "metrologyObservations": [
+    {
+      "observationId": "m-001",
+      "siteId": "site-alpha",
+      "sensorGroup": "tls",
+      "referenceValue": 10,
+      "estimate": 10.1,
+      "lower95": 9.8,
+      "upper95": 10.4
+    },
+    {
+      "observationId": "m-002",
+      "siteId": "site-beta",
+      "sensorGroup": "tls",
+      "referenceValue": 20,
+      "estimate": 19.9,
+      "lower95": 19.5,
+      "upper95": 20.3
+    },
+    {
+      "observationId": "m-003",
+      "siteId": "site-gamma",
+      "sensorGroup": "tls",
+      "referenceValue": 30,
+      "estimate": 30.4,
+      "lower95": 30,
+      "upper95": 30.8
+    },
+    {
+      "observationId": "m-004",
+      "siteId": "site-alpha",
+      "sensorGroup": "photogrammetry",
+      "referenceValue": 5,
+      "estimate": 5.4,
+      "lower95": 5.3,
+      "upper95": 5.5
+    },
+    {
+      "observationId": "m-005",
+      "siteId": "site-beta",
+      "sensorGroup": "photogrammetry",
+      "referenceValue": 7,
+      "estimate": 7.1,
+      "lower95": 6.8,
+      "upper95": 7.4
+    },
+    {
+      "observationId": "m-006",
+      "siteId": "site-gamma",
+      "sensorGroup": "photogrammetry",
+      "referenceValue": 8,
+      "estimate": 7.2,
+      "lower95": 7,
+      "upper95": 7.4
+    }
+  ]
+}
