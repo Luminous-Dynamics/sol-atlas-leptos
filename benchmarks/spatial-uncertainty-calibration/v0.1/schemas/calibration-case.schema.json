@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:luminous-dynamics:sol-atlas:spatial-uncertainty-calibration:0.1",
+  "type": "object",
+  "required": [
+    "benchmarkId",
+    "version",
+    "fixtureStatus",
+    "nominalIntervalLevel",
+    "calibrationBins",
+    "trainingSiteIds",
+    "evaluationSiteIds",
+    "selectiveConfidenceThresholds",
+    "probabilityPredictions",
+    "metrologyObservations"
+  ],
+  "properties": {
+    "benchmarkId": {
+      "const": "sol-atlas-spatial-uncertainty-calibration"
+    },
+    "version": {
+      "const": "0.1.0"
+    },
+    "fixtureStatus": {
+      "const": "synthetic"
+    },
+    "nominalIntervalLevel": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "calibrationBins": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 50
+    },
+    "trainingSiteIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evaluationSiteIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "selectiveConfidenceThresholds": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0.5,
+        "maximum": 1
+      }
+    },
+    "probabilityPredictions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "predictionId",
+          "siteId",
+          "sensorGroup",
+          "probability",
+          "outcome"
+        ],
+        "properties": {
+          "predictionId": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "sensorGroup": {
+            "type": "string"
+          },
+          "probability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "outcome": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "metrologyObservations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "observationId",
+          "siteId",
+          "sensorGroup",
+          "referenceValue",
+          "estimate",
+          "lower95",
+          "upper95"
+        ],
+        "properties": {
+          "observationId": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "sensorGroup": {
+            "type": "string"
+          },
+          "referenceValue": {
+            "type": "number"
+          },
+          "estimate": {
+            "type": "number"
+          },
+          "lower95": {
+            "type": "number"
+          },
+          "upper95": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}
