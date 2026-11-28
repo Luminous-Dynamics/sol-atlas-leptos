@@ -233,14 +233,12 @@ fn evaluate_case(case: &Value) -> Result<Value, String> {
 
         let mut robust_action: Option<String> = None;
         let mut robust_score = f64::INFINITY;
-        let mut worst_regret_by_hypothesis = BTreeMap::<String, f64>::new();
         for action in &actions {
             let mut maximum_regret = 0.0_f64;
-            for (hypothesis_id, evidence) in &hypotheses {
+            for evidence in hypotheses.values() {
                 let losses = &evidence[&unit.id].losses;
                 let best_loss = losses.values().copied().fold(f64::INFINITY, f64::min);
                 maximum_regret = maximum_regret.max(losses[action] - best_loss);
-                worst_regret_by_hypothesis.insert(hypothesis_id.clone(), losses[action] - best_loss);
             }
             if maximum_regret < robust_score - EPSILON {
                 robust_score = maximum_regret;
