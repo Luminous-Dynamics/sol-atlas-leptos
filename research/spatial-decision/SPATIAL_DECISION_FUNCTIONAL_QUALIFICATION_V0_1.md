@@ -301,7 +301,35 @@ Use the same source bytes, support, functional definition, model revision, weigh
 
 Record exact software versions, options, operator expertise, tuning/data-access restrictions, hardware/compute, time, exclusions and failed/unsupported runs. Report NOT_RUN where a product or license cannot be accessed; do not convert unavailable into inferior.
 
-## 11. Execution ladder and claim ceiling
+## 11. Candidate retrospective demonstrator: Jukskei/SUNCASA (conditional)
+
+The existing Jukskei programme may provide a local application after its owners admit primary records and rights:
+- Sol-Atlas [#842 — Jukskei EO qualification](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/842): retrospective land-cover evidence and sensor-shift audit.
+- Sol-Atlas [#852 — Jukskei/SUNCASA data admission](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/852): intervention polygons, hydrological monitoring network, EcoFilter records and a separate community planting cohort.
+- Sol-Atlas [#845 — physical-change invariance](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/845): measurement-system perturbation and estimand support.
+- Sol-Atlas [#771 — Earth observability](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/771) and [#804 — effective observation cadence](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/804): observation envelope and usable temporal coverage.
+
+Candidate functionals, subject to primary-source admission:
+1. **Restoration area:** area of as-built intervention polygons by reach, intervention type and reporting period, with geometry/support uncertainty.
+2. **Land-cover extent change:** matched-support area/extent change under sensor, product, class-legend, resolution and seasonal shift; preserve each measurement profile rather than average incompatible maps.
+3. **Monitoring coverage:** proportion/time integral of qualified hydrological station coverage, with station downtime, missingness, spatial footprint and calibration validity explicit.
+4. **EcoFilter load:** concentration-to-load/time integral only if paired flow/discharge and sampling windows are qualified. Concentration change alone does not establish removed mass or catchment-scale improvement.
+5. **Reach/corridor summaries:** line/segment functionals for monitoring transects where spatial support, observation cadence and independent reference are sufficient.
+
+The #852 issue already records differing published SUNCASA figures (City closing summary versus IISD assessments) and a separate 45-tree community planting cohort. Preserve these as separate scope/time/source assertions. Do not average them, add them together, or promote headline programme totals into ground truth. The EcoFilter is not a potable-water system or proof of catchment-wide pollution removal.
+
+Before any retrospective score is emitted, require:
+- exact project/AOI boundaries and polygon revisions;
+- source-native observation/product identifiers and measurement profiles;
+- acquisition/reporting windows, CRS, vertical datum, coordinate epoch and area method;
+- primary intervention/station/sample records and the full support denominator;
+- instrument calibration/reference evidence and independent field truth appropriate to the functional;
+- rights/custodian permission for every input and derived release;
+- a preregistered holdout and independent site/campaign evaluation.
+
+Until these exist, the application state is `NOT_ADMITTED` or `NOT_RUN`, not a low score or a completed impact evaluation. This is a candidate study, not an assertion that the current public summaries or maps prove intervention outcomes.
+
+## 12. Execution ladder and claim ceiling
 
 - **F0:** mathematical contract and hand-computable support/functional cases.
 - **F1:** independent Rust reference for bounded analytical/grid/network cases.
@@ -311,7 +339,7 @@ Record exact software versions, options, operator expertise, tuning/data-access 
 
 A lower tier cannot be promoted by wording or dashboard display. This work does not establish field accuracy, engineering safety, land access, rights, physical connectivity or authority to alter infrastructure.
 
-## 12. Explicit non-claims
+## 13. Explicit non-claims
 
 This is a research/benchmark contract. It does not:
 - implement a new geostatistical, covariance, Bayesian or topology engine;
