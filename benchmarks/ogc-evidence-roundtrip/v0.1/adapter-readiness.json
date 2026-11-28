@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "reviewed_candidate_matrix_not_executed",
+  "ogcJsonFgStandard": "1.0.0",
+  "adapters": [
+    {
+      "id": "gdal-ogr-jsonfg",
+      "kind": "file_adapter",
+      "candidate": "GDAL/OGR JSONFG driver",
+      "documentedCapabilities": [
+        "featureType",
+        "coordRefSys",
+        "Feature.time",
+        "limited Polyhedron/Prism support"
+      ],
+      "qualificationState": "not_qualified",
+      "documentedCaveat": "Current stable driver documentation explicitly says the driver implements a draft version of JSON-FG.",
+      "executionStatus": "not_executed",
+      "requiredTests": [
+        "JSON-FG 1.0.0 independent conformance",
+        "full property retention",
+        "feature time and CRS round-trip",
+        "field-disposition ledger",
+        "rights and provenance invariants"
+      ],
+      "source": "https://gdal.org/en/stable/drivers/vector/jsonfg.html"
+    },
+    {
+      "id": "pygeoapi-core",
+      "kind": "api_server",
+      "candidate": "pygeoapi 0.24.0 core",
+      "documentedCapabilities": [
+        "OGC API - Features",
+        "OGR provider",
+        "GeoJSON default output",
+        "custom formatter plugin framework"
+      ],
+      "qualificationState": "not_qualified_for_jsonfg_1_0",
+      "documentedCaveat": "Core documentation identifies GeoJSON as the default representation; additional formatters are configured separately. Extra query parameters are ignored unless configured.",
+      "executionStatus": "not_executed",
+      "requiredTests": [
+        "JSON-FG formatter negotiation",
+        "OGC API Features endpoint conformance",
+        "full property retention",
+        "CRS/time preservation",
+        "field-disposition ledger",
+        "rights and provenance invariants"
+      ],
+      "source": "https://docs.pygeoapi.io/en/stable/publishing/ogcapi-features.html"
+    },
+    {
+      "id": "pygeoapi-jsonfg-plugin",
+      "kind": "api_formatter_plugin",
+      "candidate": "pygeoapi-plugins JSONFG formatter",
+      "documentedCapabilities": [
+        "JSON-FG compliant GeoJSON output formatter"
+      ],
+      "qualificationState": "not_qualified",
+      "documentedCaveat": "Third-party plugin documentation advertises JSON-FG formatter; version and output have not been tested against this fixture or the OGC checker.",
+      "executionStatus": "not_executed",
+      "requiredTests": [
+        "pin package and transitive environment",
+        "validate returned representation with independent OGC checker",
+        "full custom-property retention",
+        "multi-hop semantic round-trip"
+      ],
+      "source": "https://pypi.org/project/pygeoapi-plugins/"
+    },
+    {
+      "id": "geonovum-ogc-checker",
+      "kind": "independent_conformance_validator",
+      "candidate": "@geonovum/ogc-checker 1.3.2",
+      "standardVersion": "JSON-FG 1.0.0",
+      "qualificationState": "tool_for_document_validation",
+      "documentedCoverageGaps": [
+        "/req/core/valid-geometry is not tested",
+        "/req/core/axis-order is not testable by this checker",
+        "/req/types-schemas/feature-schemas is not tested because referenced schemas are not dereferenced",
+        "profile negotiation requirements are API-layer concerns and are not tested"
+      ],
+      "executionStatus": "scheduled_in_ci",
+      "requiredTests": [
+        "run against frozen JSON-FG fixture",
+        "negative control missing Core conformance declaration",
+        "record checker version and output digest"
+      ],
+      "source": "https://github.com/Geonovum/ogc-checker"
+    }
+  ],
+  "qualificationRule": "A candidate adapter is not qualified by documentation or successful JSON parsing. Qualification requires pinned version, executed independent JSON-FG validation where applicable, semantic round-trip comparison and a complete field-disposition ledger."
+}
