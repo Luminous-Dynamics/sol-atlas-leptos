@@ -779,6 +779,7 @@ fn evaluate_document(document: &Value) -> Result<Value, String> {
         "schemaVersion": "0.1",
         "fixtureStatus": "synthetic",
         "worldWeightSemantics": weight_semantics,
+        "claimCeiling": "SYNTHETIC_FINITE_REFERENCE_ONLY",
         "caseCount": results.len(),
         "results": results
     }))
@@ -831,6 +832,7 @@ mod tests {
     #[test]
     fn weighted_mean_uses_full_target_support_and_reports_bounds() {
         let report = evaluate_document(&fixture()).expect("fixture must evaluate");
+        assert_eq!(report["claimCeiling"], "SYNTHETIC_FINITE_REFERENCE_ONLY");
         let result = case_result(&report, "mean-with-unknown-support");
         assert_eq!(result["status"], "BOUNDED_UNKNOWN");
         assert!((result["knownSupportFraction"].as_f64().unwrap() - 0.5).abs() < EPSILON);
