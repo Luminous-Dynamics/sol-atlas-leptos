@@ -37,6 +37,11 @@
       "id": "INV-07",
       "name": "conditional-correlation-aware-follow-up",
       "expected": "follow-up observation likelihoods are conditioned on all prior outcomes through the complete joint distribution"
+    },
+    {
+      "id": "INV-08",
+      "name": "joint-single-survey-marginal-consistency",
+      "expected": "the declared marginal likelihood for every sensor/hypothesis equals the marginal induced by the complete joint outcome table"
     }
   ],
   "negativeControls": [
@@ -69,6 +74,12 @@
       "mutation": "Continue acquiring a correlated repeat observation when its conditional expected decision gain is zero and its cost is positive.",
       "expected": "stop",
       "reason": "Sequential planning must compare expected continuation value with stopping."
+    },
+    {
+      "id": "NEG-06",
+      "mutation": "Change a single-survey positive likelihood without changing the corresponding joint outcome distribution.",
+      "expected": "reject",
+      "reason": "The benchmark must isolate dependence assumptions rather than compare different marginal sensor models."
     }
   ],
   "baselines": [
