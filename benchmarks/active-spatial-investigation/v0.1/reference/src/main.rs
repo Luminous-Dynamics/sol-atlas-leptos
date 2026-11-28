@@ -362,6 +362,17 @@ fn calculate(case: &Value) -> Value {
         .collect();
     information_gain.sort_by(|a, b| b.1.total_cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
 
+    let (top_eig_survey_id, top_eig_bits) = information_gain
+        .first()
+        .cloned()
+        .unwrap_or_else(|| fail("no survey candidates available"));
+    let top_eig_index = problem
+        .surveys
+        .iter()
+        .position(|survey| survey.id == top_eig_survey_id)
+        .unwrap_or_else(|| fail("highest-EIG survey is missing from candidates"));
+    let top_eig_score = evaluate_portfolio(&problem, &[top_eig_index], baseline_utility);
+
     json!({
         "benchmarkId": "sol-atlas-active-spatial-investigation",
         "version": "0.1.0",
@@ -371,6 +382,13 @@ fn calculate(case: &Value) -> Value {
             "expectedUtility": baseline_utility
         },
         "selectedSurveyIds": selected_ids,
+        "highestInformationGainSingleSurvey": {
+            "surveyId": top_eig_survey_id,
+            "expectedInformationGainBits": top_eig_bits,
+            "expectedPostSurveyUtility": top_eig_score.expected_post_survey_utility,
+            "grossEvsi": top_eig_score.gross_evsi,
+            "netEvsi": top_eig_score.net_evsi
+        },
         "portfolio": {
             "effortUnits": best.effort_units,
             "utilityCost": best.utility_cost,
@@ -446,6 +464,28 @@ mod tests {
         assert_eq!(
             result["informationGainRanking"][0]["surveyId"],
             "ornamental_subtype_catalog"
+        );
+        assert_eq!(
+            result["highestInformationGainSingleSurvey"]["surveyId"],
+            "ornamental_subtype_catalog"
+        );
+        close(
+            result["highestInformationGainSingleSurvey"]["expectedInformationGainBits"]
+                .as_f64()
+                .unwrap(),
+            0.6529738536349244,
+        );
+        close(
+            result["highestInformationGainSingleSurvey"]["grossEvsi"]
+                .as_f64()
+                .unwrap(),
+            0.0,
+        );
+        close(
+            result["highestInformationGainSingleSurvey"]["netEvsi"]
+                .as_f64()
+                .unwrap(),
+            -0.4,
         );
         assert_eq!(result["selectedSurveyIds"][0], "stratigraphic_microsection");
     }
