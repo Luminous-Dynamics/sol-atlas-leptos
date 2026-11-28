@@ -39,7 +39,28 @@ The recommendation changes near a TV radius of 0.6632 in this fixture. At radius
 
 This is a constructed counterexample and sensitivity curve. It does not demonstrate that either survey is superior in the field.
 
-## Connection to current research
+## 4. Lower-tail CVaR as a decision-risk frontier
+
+The benchmark now reports a reward-side lower-tail CVaR policy alongside nominal, maximin, minimax-regret and total-variation DRO policies. Its parameter is **tail mass** \(\tau\), not the conventional loss-CVaR confidence level \(\alpha\).
+
+For scenario net-EVSI reward \(R\), the benchmark maximizes the mean of the worst \(\tau\) probability mass. In standard loss-CVaR notation this is:
+
+\[
+\operatorname{LowerTailCVaR}_{\tau}(R)
+= -\operatorname{CVaR}_{1-\tau}(-R).
+\]
+
+This convention matters: common CVaR references define \(\operatorname{CVaR}_{\alpha}\) for losses as the mean of the upper \(1-\alpha\) tail, with fractional weighting at a discrete quantile boundary. The benchmark uses the corresponding lower reward tail and records the normalized scenario weights that constitute that tail ([Rockafellar & Uryasev, CVaR formulation](https://pubsonline.informs.org/doi/pdf/10.1287/educ.2018.0183)). The finite-scenario computation exactly splits a scenario's probability mass when the tail boundary falls inside that scenario's mass.
+
+In the synthetic fixture:
+- tail mass 0.1 selects archive cross-check, lower-tail net EVSI 3.0;
+- tail mass 0.2 selects multispectral material scan, lower-tail net EVSI 8.5;
+- tail mass 1.0 recovers the nominal expected-net-EVSI policy and value 19.6.
+
+This is a preference frontier, not a claim that one tail mass is objectively correct. The value must be elicited and pre-registered with conservation decision-makers.
+
+## 5. Connection to current research
+
 
 The 2025 *Acta Numerica* survey by Kuhn, Shafiee and Wiesemann defines DRO around an ambiguity set of distributions consistent with structural or statistical information, with decisions optimized against the worst distribution in that set. It reviews the statistical and optimization foundations and connections to regularization and adversarial ML ([Kuhn et al., 2025](https://doi.org/10.1017/S0962492924000084)). <Cite refs={["turn470860search0"]}/>
 
@@ -49,7 +70,7 @@ Minimax decision rules also have known drawbacks: a small scenario set can exert
 
 The Sol-Atlas finite-support TV benchmark is an exact first step, not a replacement for data-driven Wasserstein DRO, moment-based ambiguity sets or divergence-based ambiguity sets. Those approaches require empirical distributions, calibration samples or credible moment bounds and a more substantial optimization solver. The finite-scenario fixture instead makes the policy consequences of probability ambiguity testable in a transparent reference oracle.
 
-## Next research programme
+## 6. Next research programme
 
 1. Derive scenario envelopes from repeated field campaigns, sensor calibration logs, site/material strata and documented cost variation.
 2. Estimate uncertainty in priors and sensor likelihoods using whole-site/campaign holdouts.
@@ -64,4 +85,5 @@ The Sol-Atlas finite-support TV benchmark is an exact first step, not a replacem
 - Kuhn, D., Shafiee, S. & Wiesemann, W. (2025). [Distributionally Robust Optimization](https://doi.org/10.1017/S0962492924000084). *Acta Numerica*, 34, 579–804.
 - [Evaluating sensitivity of distributionally robust optimization models](https://www.sciencedirect.com/science/article/pii/S0305054826002571) (2026).
 - Anderson, E. & Zachary, S. (2023). [Minimax decision rules for planning under uncertainty: Drawbacks and remedies](https://doi.org/10.1016/j.ejor.2023.05.030). *European Journal of Operational Research*, 311(2), 789–800.
+- Rockafellar, R. T. & Uryasev, S. (2002). [Conditional Value-at-Risk for general loss distributions](https://pubsonline.informs.org/doi/pdf/10.1287/educ.2018.0183).
 - Fontem, B. & Ji, R. (2026). [Distributionally robust optimization with generalized total variation ambiguity sets](https://doi.org/10.1016/j.ejor.2025.09.024). *European Journal of Operational Research*, 328(3), 894–911.
