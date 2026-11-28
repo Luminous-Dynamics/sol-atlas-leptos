@@ -27,6 +27,16 @@
       "id": "INV-05",
       "name": "independence-bias-is-visible",
       "expected": "the evaluator reports exact joint EVSI and the naive conditional-independence comparator separately"
+    },
+    {
+      "id": "INV-06",
+      "name": "adaptive-sequential-decision-policy",
+      "expected": "after each result, compare expected continuation utility net of acquisition cost against stopping and making the best current decision"
+    },
+    {
+      "id": "INV-07",
+      "name": "conditional-correlation-aware-follow-up",
+      "expected": "follow-up observation likelihoods are conditioned on all prior outcomes through the complete joint distribution"
     }
   ],
   "negativeControls": [
@@ -47,6 +57,18 @@
       "mutation": "Add a non-binary character or an outcome pattern of the wrong length.",
       "expected": "reject",
       "reason": "Observation patterns must map unambiguously to the frozen survey inventory."
+    },
+    {
+      "id": "NEG-04",
+      "mutation": "Treat a perfectly correlated second survey as independent after observing the first.",
+      "expected": "reject",
+      "reason": "The policy value must condition the next observation on the entire observed history."
+    },
+    {
+      "id": "NEG-05",
+      "mutation": "Continue acquiring a correlated repeat observation when its conditional expected decision gain is zero and its cost is positive.",
+      "expected": "stop",
+      "reason": "Sequential planning must compare expected continuation value with stopping."
     }
   ],
   "baselines": [
