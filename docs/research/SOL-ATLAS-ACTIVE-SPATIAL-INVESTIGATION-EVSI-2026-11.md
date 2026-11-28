@@ -53,7 +53,7 @@ A successful import/export is not proof of interoperability. Each adapter hop mu
 
 ## 2. Synthetic reference result now in the branch
 
-The new Rust reference crate is intended to be a small exact oracle for a finite EVSI problem. It uses a synthetic heritage decision with three hypotheses, two possible conservation actions, four candidate surveys, binary outcomes and a three-unit effort budget.
+The new Rust reference crate is intended to be a small exact oracle for a finite EVSI problem. It uses a synthetic heritage decision with three hypotheses, two possible conservation actions, four candidate surveys, binary outcomes and a two-unit effort budget.
 
 | Measure | Synthetic oracle |
 |---|---:|
