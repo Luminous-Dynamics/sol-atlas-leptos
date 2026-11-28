@@ -694,8 +694,14 @@ mod tests {
         close(robust["worstCaseNetEvsi"].as_f64().unwrap(), 3.0);
         assert_eq!(regret["selectedSurveyIds"], json!(["archive_crosscheck"]));
         close(regret["maximumRegret"].as_f64().unwrap(), 15.0);
+        let sensor_shift_choice = result["scenarioBestChoices"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|choice| choice["scenarioId"] == "sensor_shift")
+            .unwrap();
         assert_eq!(
-            result["scenarioBestChoices"][1]["bestSurveyIds"],
+            sensor_shift_choice["bestSurveyIds"],
             json!(["archive_crosscheck"])
         );
     }
@@ -733,6 +739,11 @@ mod tests {
                 .as_f64()
                 .unwrap(),
         );
+        let robust_values: Vec<f64> = tv_policies
+            .iter()
+            .map(|policy| policy["worstCaseExpectedNetEvsi"].as_f64().unwrap())
+            .collect();
+        assert!(robust_values.windows(2).all(|window| window[1] <= window[0] + EPSILON));
     }
 
     #[test]
