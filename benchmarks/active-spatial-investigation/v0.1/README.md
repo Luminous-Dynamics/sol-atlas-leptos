@@ -20,7 +20,7 @@ EIG is reported as a diagnostic baseline, not the optimization objective. A high
 
 ## Synthetic oracle
 
-The prior best action is `preserve_in_situ` with expected utility 72.0. The exhaustive EVSI planner selects `stratigraphic_microsection`, yielding expected post-observation utility 79.125 and net EVSI 4.625 under a budget of three effort units.
+The prior best action is `preserve_in_situ` with expected utility 72.0. The exhaustive EVSI planner selects `stratigraphic_microsection`, yielding expected post-observation utility 79.125 and net EVSI 4.625 under a budget of two effort units.
 
 The EIG-only ranking selects `ornamental_subtype_catalog` first (approximately 0.653 bits), while this observation leaves the optimal action unchanged and has zero gross EVSI in this fixture. This is a constructed counterexample, not an empirical comparison of survey methods.
 
