@@ -1,4 +1,4 @@
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use std::{
     collections::{BTreeMap, BTreeSet},
     env, fs,
@@ -161,7 +161,10 @@ fn parse_cells(support: &Value) -> Result<(Vec<Cell>, f64, f64), String> {
 
 fn validate_support(support: &Value, kind: &str) -> Result<(), String> {
     let path = "case.support";
-    as_string(required(support, "supportId", path)?, "case.support.supportId")?;
+    as_string(
+        required(support, "supportId", path)?,
+        "case.support.supportId",
+    )?;
     as_string(
         required(support, "supportRevision", path)?,
         "case.support.supportRevision",
@@ -236,11 +239,11 @@ fn parse_weights(worlds: &[Value]) -> Result<Vec<(String, f64)>, String> {
 
     for (index, world) in worlds.iter().enumerate() {
         let path = format!("case.worlds[{index}]");
-        let id = as_string(required(world, "worldId", &path)?, &format!("{path}.worldId"))?;
-        let weight = as_number(
-            required(world, "weight", &path)?,
-            &format!("{path}.weight"),
+        let id = as_string(
+            required(world, "worldId", &path)?,
+            &format!("{path}.worldId"),
         )?;
+        let weight = as_number(required(world, "weight", &path)?, &format!("{path}.weight"))?;
         if weight <= 0.0 {
             return Err(format!("{path}.weight must be positive"));
         }
@@ -250,7 +253,9 @@ fn parse_weights(worlds: &[Value]) -> Result<Vec<(String, f64)>, String> {
     }
     require_unique(ids, "case.worlds")?;
     if (total - 1.0).abs() > EPSILON {
-        return Err(format!("case world weights must sum to 1.0, observed {total}"));
+        return Err(format!(
+            "case world weights must sum to 1.0, observed {total}"
+        ));
     }
     Ok(result)
 }
@@ -261,21 +266,18 @@ fn parse_world_values(
     world_index: usize,
 ) -> Result<BTreeMap<String, f64>, String> {
     let path = format!("case.worlds[{world_index}]");
-    let raw_values = as_object(
-        required(world, "values", &path)?,
-        &format!("{path}.values"),
-    )?;
-    let cells_by_id: BTreeMap<String, &Cell> = cells
-        .iter()
-        .map(|cell| (cell.id.clone(), cell))
-        .collect();
+    let raw_values = as_object(required(world, "values", &path)?, &format!("{path}.values"))?;
+    let cells_by_id: BTreeMap<String, &Cell> =
+        cells.iter().map(|cell| (cell.id.clone(), cell)).collect();
 
     for key in raw_values.keys() {
         let cell = cells_by_id
             .get(key.as_str())
             .ok_or_else(|| format!("{path}.values contains unknown cell ID {key}"))?;
         if !cell.observed {
-            return Err(format!("{path}.values must not fill unknown support cell {key}"));
+            return Err(format!(
+                "{path}.values must not fill unknown support cell {key}"
+            ));
         }
     }
 
@@ -292,7 +294,11 @@ fn parse_world_values(
     Ok(values)
 }
 
-fn validate_functional_units(functional: &Value, support: &Value, kind: &str) -> Result<(), String> {
+fn validate_functional_units(
+    functional: &Value,
+    support: &Value,
+    kind: &str,
+) -> Result<(), String> {
     let path = "case.functional";
     let output_units = as_string(
         required(functional, "outputUnits", path)?,
@@ -328,14 +334,18 @@ fn validate_functional_units(functional: &Value, support: &Value, kind: &str) ->
                 required(functional, "thresholdUnits", path)?,
                 "case.functional.thresholdUnits",
             )?;
-            if threshold_units != as_string(
-                required(functional, "valueUnits", path)?,
-                "case.functional.valueUnits",
-            )? {
+            if threshold_units
+                != as_string(
+                    required(functional, "valueUnits", path)?,
+                    "case.functional.valueUnits",
+                )?
+            {
                 return Err("thresholdUnits must equal valueUnits".into());
             }
             if output_units != measure_units {
-                return Err("thresholded_measure outputUnits must equal support.measureUnits".into());
+                return Err(
+                    "thresholded_measure outputUnits must equal support.measureUnits".into(),
+                );
             }
         }
         "connectivity" => {
@@ -486,7 +496,9 @@ fn evaluate_numeric_case(case: &Value, kind: &str) -> Result<Value, String> {
             "quantile50": weighted_quantile(&exact_values, 0.50),
             "quantile95": weighted_quantile(&exact_values, 0.95)
         });
-        if let Some(decision_threshold) = optional_number(functional, "decisionThreshold", "case.functional")? {
+        if let Some(decision_threshold) =
+            optional_number(functional, "decisionThreshold", "case.functional")?
+        {
             let probability = exact_values
                 .iter()
                 .filter(|(value, _)| *value > decision_threshold)
@@ -555,15 +567,9 @@ fn graph_reachable(
     let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for edge_id in selected_edge_ids {
         if let Some((from, to)) = edges.get(edge_id) {
-            adjacency
-                .entry(from.clone())
-                .or_default()
-                .push(to.clone());
+            adjacency.entry(from.clone()).or_default().push(to.clone());
             if !directed {
-                adjacency
-                    .entry(to.clone())
-                    .or_default()
-                    .push(from.clone());
+                adjacency.entry(to.clone()).or_default().push(from.clone());
             }
         }
     }
@@ -702,10 +708,7 @@ fn parse_edge_ids(
     path: &str,
     edges: &BTreeMap<String, (String, String)>,
 ) -> Result<BTreeSet<String>, String> {
-    let values = as_array(
-        required(world, key, path)?,
-        &format!("{path}.{key}"),
-    )?;
+    let values = as_array(required(world, key, path)?, &format!("{path}.{key}"))?;
     let ids = values
         .iter()
         .enumerate()
@@ -789,10 +792,10 @@ fn run() -> Result<(), String> {
     let path = env::args()
         .nth(1)
         .ok_or_else(|| "usage: spatial-decision-functional <fixture.json>".to_string())?;
-    let input = fs::read_to_string(&path)
-        .map_err(|error| format!("could not read {path}: {error}"))?;
-    let document: Value = serde_json::from_str(&input)
-        .map_err(|error| format!("invalid JSON in {path}: {error}"))?;
+    let input =
+        fs::read_to_string(&path).map_err(|error| format!("could not read {path}: {error}"))?;
+    let document: Value =
+        serde_json::from_str(&input).map_err(|error| format!("invalid JSON in {path}: {error}"))?;
     let report = evaluate_document(&document)?;
     let rendered = serde_json::to_string_pretty(&report)
         .map_err(|error| format!("could not serialize report: {error}"))?;
@@ -836,8 +839,22 @@ mod tests {
         let result = case_result(&report, "mean-with-unknown-support");
         assert_eq!(result["status"], "BOUNDED_UNKNOWN");
         assert!((result["knownSupportFraction"].as_f64().unwrap() - 0.5).abs() < EPSILON);
-        assert!((result["summary"]["weightedMeanLowerBound"].as_f64().unwrap() - 1.5).abs() < EPSILON);
-        assert!((result["summary"]["weightedMeanUpperBound"].as_f64().unwrap() - 6.5).abs() < EPSILON);
+        assert!(
+            (result["summary"]["weightedMeanLowerBound"]
+                .as_f64()
+                .unwrap()
+                - 1.5)
+                .abs()
+                < EPSILON
+        );
+        assert!(
+            (result["summary"]["weightedMeanUpperBound"]
+                .as_f64()
+                .unwrap()
+                - 6.5)
+                .abs()
+                < EPSILON
+        );
     }
 
     #[test]
@@ -845,8 +862,17 @@ mod tests {
         let report = evaluate_document(&fixture()).expect("fixture must evaluate");
         let result = case_result(&report, "mean-full-support");
         assert_eq!(result["status"], "QUALIFIED");
-        assert!((result["summary"]["expectedValue"].as_f64().unwrap() - (47.0 / 12.0)).abs() < EPSILON);
-        assert!((result["summary"]["probabilityAboveDecisionThreshold"].as_f64().unwrap() - 0.75).abs() < EPSILON);
+        assert!(
+            (result["summary"]["expectedValue"].as_f64().unwrap() - (47.0 / 12.0)).abs() < EPSILON
+        );
+        assert!(
+            (result["summary"]["probabilityAboveDecisionThreshold"]
+                .as_f64()
+                .unwrap()
+                - 0.75)
+                .abs()
+                < EPSILON
+        );
     }
 
     #[test]
@@ -854,8 +880,22 @@ mod tests {
         let report = evaluate_document(&fixture()).expect("fixture must evaluate");
         let result = case_result(&report, "thresholded-area-with-unknown-cell");
         assert_eq!(result["status"], "BOUNDED_UNKNOWN");
-        assert!((result["summary"]["weightedMeanLowerBound"].as_f64().unwrap() - 2.5).abs() < EPSILON);
-        assert!((result["summary"]["weightedMeanUpperBound"].as_f64().unwrap() - 3.5).abs() < EPSILON);
+        assert!(
+            (result["summary"]["weightedMeanLowerBound"]
+                .as_f64()
+                .unwrap()
+                - 2.5)
+                .abs()
+                < EPSILON
+        );
+        assert!(
+            (result["summary"]["weightedMeanUpperBound"]
+                .as_f64()
+                .unwrap()
+                - 3.5)
+                .abs()
+                < EPSILON
+        );
     }
 
     #[test]
@@ -877,8 +917,14 @@ mod tests {
     #[test]
     fn unknown_support_without_bounds_never_becomes_zero() {
         let mut document = fixture();
-        document["cases"][0]["support"]["cells"][1].as_object_mut().unwrap().remove("lowerValue");
-        document["cases"][0]["support"]["cells"][1].as_object_mut().unwrap().remove("upperValue");
+        document["cases"][0]["support"]["cells"][1]
+            .as_object_mut()
+            .unwrap()
+            .remove("lowerValue");
+        document["cases"][0]["support"]["cells"][1]
+            .as_object_mut()
+            .unwrap()
+            .remove("upperValue");
         let report = evaluate_document(&document).expect("unknown support remains a valid input");
         let result = case_result(&report, "mean-with-unknown-support");
         assert_eq!(result["status"], "UNKNOWN");
@@ -891,7 +937,9 @@ mod tests {
         let report = evaluate_document(&fixture()).expect("fixture must evaluate");
         let result = case_result(&report, "joint-connectivity-worlds");
         assert_eq!(result["status"], "QUALIFIED");
-        assert!((result["summary"]["probabilityConnected"].as_f64().unwrap() - 0.4).abs() < EPSILON);
+        assert!(
+            (result["summary"]["probabilityConnected"].as_f64().unwrap() - 0.4).abs() < EPSILON
+        );
     }
 
     #[test]
@@ -899,8 +947,22 @@ mod tests {
         let report = evaluate_document(&fixture()).expect("fixture must evaluate");
         let result = case_result(&report, "connectivity-with-unknown-edge");
         assert_eq!(result["status"], "BOUNDED_UNKNOWN");
-        assert!((result["summary"]["probabilityConnectedLowerBound"].as_f64().unwrap() - 0.5).abs() < EPSILON);
-        assert!((result["summary"]["probabilityConnectedUpperBound"].as_f64().unwrap() - 1.0).abs() < EPSILON);
+        assert!(
+            (result["summary"]["probabilityConnectedLowerBound"]
+                .as_f64()
+                .unwrap()
+                - 0.5)
+                .abs()
+                < EPSILON
+        );
+        assert!(
+            (result["summary"]["probabilityConnectedUpperBound"]
+                .as_f64()
+                .unwrap()
+                - 1.0)
+                .abs()
+                < EPSILON
+        );
         assert!(result["summary"].get("probabilityConnected").is_none());
     }
 
