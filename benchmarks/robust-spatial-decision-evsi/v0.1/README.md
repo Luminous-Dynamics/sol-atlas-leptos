@@ -27,6 +27,20 @@ There are two hypotheses, two actions, two candidate surveys and three scenarios
 
 The multispectral survey is much more valuable under ordinary conditions, but its likelihood deteriorates sharply in the sensor-shift scenario. The archive survey has lower nominal value but remains useful in every scenario. Nominal optimization and robust criteria therefore choose different observations.
 
+
+### Total-variation robustness curve
+
+| TV radius | Selected policy | Worst-case expected net EVSI |
+|---:|---|---:|
+| 0.0 | Multispectral material scan | 19.6 |
+| 0.1 | Multispectral material scan | 17.2 |
+| 0.3 | Multispectral material scan | 12.4 |
+| 0.5 | Multispectral material scan | 7.6 |
+| 0.7 | Archive cross-check | 3.5 |
+| 1.0 | Archive cross-check | 3.0 |
+
+The policy changes near a TV radius of 0.6632 for this fixture. This is a sensitivity result for the declared three-scenario problem, not a universal robustness threshold.
+
 This is intentionally constructed. It is not an empirical claim about multispectral scanning or archival research.
 
 ## Protocol
@@ -43,7 +57,7 @@ This is intentionally constructed. It is not an empirical claim about multispect
 
 The reference implementation uses a finite set of named scenarios and a total-variation ball around their nominal weights. For each candidate portfolio, it moves probability mass from the scenarios with the highest net EVSI to the lowest-scoring scenario, bounded by the declared TV radius. This exactly solves the finite-support weight-ambiguity subproblem; it does **not** construct a Wasserstein ball over raw sensor measurements, continuous covariates or unknown likelihood functions. Its guarantees apply only to the declared scenario support and radius.
 
-The benchmark includes radii 0, 0.1, 0.3, 0.5, 0.7 and 1.0. The two boundary cases are tested: radius 0 equals nominal expected weighting; radius 1 equals maximin over the finite scenario set.
+The benchmark includes radii 0, 0.1, 0.3, 0.5, 0.7 and 1.0. The two boundary cases are tested: radius 0 equals nominal expected weighting; radius 1 equals maximin over the finite scenario set. The optimum worst-case value is tested as non-increasing with larger radii.
 
 ## Limits
 
