@@ -18,6 +18,27 @@ This benchmark provides an executable reference for:
 - train/evaluation separation at whole-site granularity;
 - deterministic site-cluster bootstrap percentile confidence intervals for Brier, log loss and spatial interval coverage.
 
+## Tiered spatial validation: match the split to the deployment claim
+
+A random fold estimates performance when evaluation points are exchangeable with the sampled geographic mixture. It does not, by itself, estimate transfer to a new region. Recent 2026 work provides a useful tiered protocol: random folds, a training-size-matched random control, coordinate clusters, spectral communities of a nearest-neighbour graph, administrative-area holdouts, and an external regional stress test. In its Baltimore case study, random-fold performance exceeded cluster/graph splits, while administrative and external-region holdouts were harder. The authors also show why matched-size controls and sensitivity to block scale matter. This is a baseline protocol, not a universal claim that every spatial block split is superior ([Jiang et al., 2026](https://doi.org/10.1016/j.mex.2026.104072)).
+
+Sol-Atlas should label the intended deployment regime before selecting its headline metric:
+
+| Tier | Split / challenge | Claim supported |
+|---|---|---|
+| T0 | Random folds, repeated seeds | Within-mixture interpolation diagnostic only |
+| T1 | Size-matched random control | Separates geographic structure from reduced training-set size |
+| T2 | Coordinate blocks/clusters and buffered holdouts | Spatial separation within the sampled region |
+| T3 | Nearest-neighbour graph spectral communities | Transfer across graph-defined spatial communities |
+| T4 | Administrative-area / leave-one-region-out | Transfer to a distinct jurisdiction or operational area |
+| T5 | External region, sensor, campaign or season | External geographic / acquisition-regime stress test |
+
+For each tier, publish fold/site counts, training-size distribution, repeated-seed variability, spatial residual autocorrelation, block-scale sensitivity, nearest-training-support distance, and all primary metrics. Where the outcome is probabilistic, retain Brier/log loss and proper distributional scores alongside coverage and width. Report worst-site, worst-sensor and worst-community performance; never allow a pooled score to hide a failing region.
+
+Two controls are important. First, use matched-size random partitions so that a drop in performance is not misattributed to geography when fewer training observations explain it. Second, do not turn spatial blocking into a universal acceptance gate: a block split can be pessimistic for a deployment task that is genuinely local interpolation. The qualification receipt must name the deployment regime and state which tiers were run, omitted, or not applicable.
+
+**Headline rule:** an interpolation result is not a geographic-transfer result. Only external-region or equivalent independent campaign evidence may support a claim of transfer to a new region. Calibration must also be fit without using the final sealed evaluation region.
+
 ## Synthetic oracle
 
 The fixture intentionally includes one highly confident but wrong probability prediction and a photogrammetry group with weaker interval coverage than TLS. The reference tests assert:
